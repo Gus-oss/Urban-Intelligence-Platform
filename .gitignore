@@ -1,0 +1,33 @@
+# ========================
+# Python
+# ========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.env
+
+# ========================
+# Data (NO subir Big Data)
+# ========================
+data/raw/*
+data/processed/*
+*.tif
+*.tiff
+*.h5
+*.keras
+*.pth
+
+# ========================
+# Jupyter
+# ========================
+.ipynb_checkpoints/
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db
