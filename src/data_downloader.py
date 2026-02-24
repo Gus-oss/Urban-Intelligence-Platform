@@ -1,4 +1,5 @@
-# src/data_downloader.py
+# Despues de configurar las ciudades, este codigo me permite descargarlas de Sentinel-2 con autenticación, 
+# búsqueda por nubosidad y progreso visible.
 
 import os
 import time

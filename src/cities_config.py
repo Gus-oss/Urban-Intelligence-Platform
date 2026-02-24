@@ -1,3 +1,6 @@
+#Este codigo me permite configurar las ciudades y épocas del año para descargar imágenes satelitales de Sentinel-2. 
+# Define un diccionario con los límites geográficos de cada ciudad y otro con las fechas de cada estación. 
+# Luego, el downloader usará esta información para buscar y descargar las imágenes correspondientes.
 CITIES = {
     # Ciudad: (lon_min, lat_min, lon_max, lat_max)
     
