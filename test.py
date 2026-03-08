@@ -1,4 +1,4 @@
-# test_search.py — pon en la raíz y ejecuta
+# test_search.py — poner en la raíz y ejecuta si se tiene problemas con autenticación
 import requests
 import certifi
 import os
