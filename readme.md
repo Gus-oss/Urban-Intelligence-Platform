@@ -1,7 +1,8 @@
 # Urban Intelligence Platform 
-
-
 _**Autor:**_ Gustavo de Jesús Escobar Mata.
+
+## Datos
+Los datos corresponden al catalago de imagenes de Sentinel-2. Se utilizaron imagenes satelitales de: Amsterdam, Bangkok, Bogota, Ciudad de México, Dubai, Houston, Madrid, Monterrey , Mumbai y  Nairobi. La elección fue basada en variedad de suelos y regiones. 
 
 ## Estructura 
 ```bash
