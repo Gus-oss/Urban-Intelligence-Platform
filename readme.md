@@ -19,6 +19,8 @@ Urban-Intelligence-Platform/
 │   ├── processed/                      Carpeta de datos procesados
 │   └── raw/                            Carpeta de datos sin procesar
 ├── experiments/
+└── models/
+    ├── best_model.pth                  Mejor modelo obtenido
 ├── notebooks/
 └── src/
     ├── cities_config.py                Selección de las ciudades. 
