@@ -30,5 +30,5 @@ Urban-Intelligence-Platform/
     ├── preprocessor.py                 Preprosesamiento de las imagnees
     ├── prueba_autenticación.py         Prueba de autenticación de Sentinel-2
     ├── train.py                        Entrenamiento dle modelo
-    └── worldcover_downloader.py        Descarga de Titles de las imagenes
+    └── worldcover_downloader.py        Descarga de Titles de las imagenes  
 ``` 
