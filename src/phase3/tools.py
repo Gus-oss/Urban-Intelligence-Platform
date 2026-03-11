@@ -9,7 +9,7 @@ Tools:
 """
 from langchain_core.tools import tool
 from typing import Optional
-from phase3.inference import InferenceService, CLASS_NAMES
+from src.phase3.inference import InferenceService, CLASS_NAMES
 import json
 
 # ── Variables globales (se inicializan en agent.py) ──

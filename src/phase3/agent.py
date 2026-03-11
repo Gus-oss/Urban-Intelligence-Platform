@@ -17,8 +17,8 @@ from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.prebuilt import create_react_agent
-from phase3.inference import InferenceService
-from phase3.tools import ALL_TOOLS, init_tools
+from src.phase3.inference import InferenceService
+from src.phase3.tools import ALL_TOOLS, init_tools
 
 load_dotenv()
 
