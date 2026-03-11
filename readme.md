@@ -20,7 +20,8 @@ Urban-Intelligence-Platform/
 │   └── raw/                            Carpeta de datos sin procesar
 ├── experiments/
 ├──  models/
-│    └── best_model.pth                  Mejor modelo obtenido
+│    ├── best_model.pth                 Mejor modelo obtenido
+│    └── results_test_results.json      Evaluacion del modelo                  
 ├── notebooks/
 └── src/
     ├── phase3                          Fase de implementación de agentes con Anthropic
