@@ -5,7 +5,7 @@ _**Autor:**_ Gustavo de Jesús Escobar Mata.
 Los datos corresponden al catalago de imagenes de Sentinel-2. Se utilizaron imagenes satelitales de: Amsterdam, Bangkok, Bogota, Ciudad de México, Dubai, Houston, Madrid, Monterrey , Mumbai y  Nairobi. La elección fue basada en variedad de suelos y regiones. 
 
 ## Herramientas
-Se utilizo Anthropic API para realizar las consultas.
+Se utilizo Anthropic API para realizar las consultas. FastApi (/chat, /predict, /cities, /stats). Agente LangChain con 3 tools funcionando. Modelo U-Net como servicio de inferencia.
 
 ## Estructura 
 ```bash
