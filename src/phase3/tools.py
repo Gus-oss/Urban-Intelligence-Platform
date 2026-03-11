@@ -1,11 +1,12 @@
 """
 Tools del Agente LangChain — Herramientas que el agente puede usar.
-Urban Intelligence Platform - Fase 3
+Urban Intelligence Platform - Fase 3 + Fase 4 (RAG)
 
 Tools:
-    1. classify_city    — Clasifica el uso de suelo de una ciudad usando el modelo U-Net
-    2. get_city_stats   — Consulta estadísticas precalculadas del dataset
-    3. list_cities      — Lista las ciudades disponibles en el dataset
+    1. classify_city      — Clasifica uso de suelo con el modelo U-Net
+    2. get_city_stats     — Consulta estadísticas precalculadas del dataset
+    3. list_cities        — Lista ciudades disponibles
+    4. search_urban_docs  — Busca información en documentos urbanos (RAG)
 """
 from langchain_core.tools import tool
 from typing import Optional
@@ -15,12 +16,12 @@ import json
 # ── Variables globales (se inicializan en agent.py) ──
 _inference_service: Optional[InferenceService] = None
 _data_dir: Optional[str] = None
+_rag_service = None
 
 # Límite de patches para inferencia local (CPU)
-# En la VM con GPU se puede subir a None para procesar todos
 MAX_PATCHES = 50
 
-# Estadísticas precalculadas del dataset (de la bitácora)
+# Estadísticas precalculadas del dataset
 DATASET_STATS = {
     "amsterdam_nl": {
         "nombre_completo": "Ámsterdam, Países Bajos",
@@ -85,18 +86,19 @@ DATASET_STATS = {
 }
 
 
-def init_tools(inference_service: InferenceService, data_dir: str):
-    """Inicializa los tools con el servicio de inferencia y la ruta de datos."""
-    global _inference_service, _data_dir
+def init_tools(inference_service: InferenceService, data_dir: str, rag_service=None):
+    """Inicializa los tools con el servicio de inferencia, datos y RAG."""
+    global _inference_service, _data_dir, _rag_service
     _inference_service = inference_service
     _data_dir = data_dir
+    _rag_service = rag_service
 
 
 @tool
 def classify_city(city_name: str) -> str:
     """
     Clasifica el uso de suelo de una ciudad usando el modelo U-Net con imágenes Sentinel-2.
-    Analiza una muestra representativa de patches de la ciudad y devuelve la distribución
+    Analiza una muestra representativa de patches y devuelve la distribución
     de 4 clases LULC: Urbano, Vegetación, Agua, Suelo desnudo.
 
     Args:
@@ -104,7 +106,6 @@ def classify_city(city_name: str) -> str:
     """
     if _inference_service is None:
         return "Error: El servicio de inferencia no está inicializado."
-
     if _data_dir is None:
         return "Error: No se ha configurado el directorio de datos."
 
@@ -116,13 +117,11 @@ def classify_city(city_name: str) -> str:
 def get_city_stats(city_name: str) -> str:
     """
     Obtiene estadísticas precalculadas del dataset para una ciudad:
-    nombre completo, región geográfica, número de estaciones del año disponibles,
-    y cantidad de patches (imágenes de 256x256 píxeles).
+    nombre completo, región geográfica, estaciones disponibles y cantidad de patches.
 
     Args:
         city_name: Nombre de la ciudad en formato prefijo (ej: 'monterrey_mx', 'amsterdam_nl')
     """
-    # Buscar la ciudad (match parcial)
     city_key = None
     for key in DATASET_STATS:
         if city_name.lower() in key or key in city_name.lower():
@@ -141,8 +140,7 @@ def get_city_stats(city_name: str) -> str:
 @tool
 def list_cities() -> str:
     """
-    Lista todas las ciudades disponibles en el dataset con su información básica:
-    nombre, región, estaciones disponibles y cantidad de patches.
+    Lista todas las ciudades disponibles en el dataset con información básica.
     Útil para saber qué ciudades se pueden analizar.
     """
     result = {
@@ -161,5 +159,21 @@ def list_cities() -> str:
     return json.dumps(result, ensure_ascii=False, indent=2)
 
 
+@tool
+def search_urban_docs(query: str) -> str:
+    """
+    Busca información en documentos sobre urbanismo, estándares internacionales
+    de ONU-Habitat, clasificación LULC, y perfiles de las 10 ciudades del dataset.
+    Útil para contextualizar los resultados de clasificación con conocimiento experto.
+
+    Args:
+        query: Tema o pregunta a buscar (ej: 'estándares áreas verdes', 'perfil urbano Dubái', 'métricas LULC')
+    """
+    if _rag_service is None:
+        return "Error: El servicio RAG no está disponible."
+
+    return _rag_service.search_text(query, k=4)
+
+
 # Lista de tools para el agente
-ALL_TOOLS = [classify_city, get_city_stats, list_cities]
+ALL_TOOLS = [classify_city, get_city_stats, list_cities, search_urban_docs]
