@@ -19,14 +19,20 @@ Urban-Intelligence-Platform/
 │   ├── processed/                      Carpeta de datos procesados
 │   └── raw/                            Carpeta de datos sin procesar
 ├── experiments/
-└── models/
-    ├── best_model.pth                  Mejor modelo obtenido
+├──  models/
+│    └── best_model.pth                  Mejor modelo obtenido
 ├── notebooks/
 └── src/
+    ├── phase3                          Fase de implementación de agentes con Anthropic
+    │   ├── _init_.py
+    │   ├── agent.py 
+    │   ├── api.py
+    │   ├── inference.py
+    │   └── tools.py
     ├── cities_config.py                Selección de las ciudades. 
     ├── data_downloader.py              Descarga las imagnees del Sentinel-2
     ├── evaluate.py                     Evaluación del modelo
-    ├── get_worldcover_tiles.py         Obten los tiles de WorldCover necesarios para cubrir las ciudades
+    ├── get_worldcover_tiles.py         Obten los tiles de WorldCover para las ciudades
     ├── preprocessor.py                 Preprosesamiento de las imagnees
     ├── prueba_autenticación.py         Prueba de autenticación de Sentinel-2
     ├── train.py                        Entrenamiento dle modelo
