@@ -38,4 +38,4 @@ Urban-Intelligence-Platform/
     ├── prueba_autenticación.py         Prueba de autenticación de Sentinel-2
     ├── train.py                        Entrenamiento dle modelo
     └── worldcover_downloader.py        Descarga de Titles de las imagenes  
-``` 
+```
