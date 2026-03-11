@@ -36,6 +36,6 @@ Urban-Intelligence-Platform/
     ├── get_worldcover_tiles.py         Obten los tiles de WorldCover para las ciudades
     ├── preprocessor.py                 Preprosesamiento de las imagnees
     ├── prueba_autenticación.py         Prueba de autenticación de Sentinel-2
-    ├── train.py                        Entrenamiento dle modelo
+    ├── train.py                        Entrenamiento de modelo
     └── worldcover_downloader.py        Descarga de Titles de las imagenes  
 ```
