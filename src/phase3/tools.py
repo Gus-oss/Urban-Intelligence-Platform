@@ -16,6 +16,10 @@ import json
 _inference_service: Optional[InferenceService] = None
 _data_dir: Optional[str] = None
 
+# Límite de patches para inferencia local (CPU)
+# En la VM con GPU se puede subir a None para procesar todos
+MAX_PATCHES = 50
+
 # Estadísticas precalculadas del dataset (de la bitácora)
 DATASET_STATS = {
     "amsterdam_nl": {
@@ -92,7 +96,7 @@ def init_tools(inference_service: InferenceService, data_dir: str):
 def classify_city(city_name: str) -> str:
     """
     Clasifica el uso de suelo de una ciudad usando el modelo U-Net con imágenes Sentinel-2.
-    Analiza todos los patches disponibles de la ciudad y devuelve la distribución
+    Analiza una muestra representativa de patches de la ciudad y devuelve la distribución
     de 4 clases LULC: Urbano, Vegetación, Agua, Suelo desnudo.
 
     Args:
@@ -104,7 +108,7 @@ def classify_city(city_name: str) -> str:
     if _data_dir is None:
         return "Error: No se ha configurado el directorio de datos."
 
-    result = _inference_service.predict_city(_data_dir, city_name)
+    result = _inference_service.predict_city(_data_dir, city_name, max_patches=MAX_PATCHES)
     return json.dumps(result, ensure_ascii=False, indent=2)
 
 

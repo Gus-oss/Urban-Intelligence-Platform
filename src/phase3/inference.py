@@ -12,6 +12,7 @@ import torch
 import segmentation_models_pytorch as smp
 from pathlib import Path
 from typing import Dict, Tuple, Optional
+import random
 
 
 # Clases LULC (4 clases)
@@ -73,13 +74,15 @@ class InferenceService:
         stats = self._compute_stats(mask)
         return mask, stats
 
-    def predict_city(self, data_dir: str, city_prefix: str) -> Dict:
+    def predict_city(self, data_dir: str, city_prefix: str, max_patches: Optional[int] = None) -> Dict:
         """
-        Predice y agrega estadísticas para todos los patches de una ciudad.
+        Predice y agrega estadísticas para los patches de una ciudad.
 
         Args:
             data_dir: Ruta a la carpeta processed/
             city_prefix: Prefijo de la ciudad (ej: 'monterrey_mx')
+            max_patches: Máximo de patches a procesar. None = todos.
+                         Útil para CPU (50 patches) vs GPU (todos).
 
         Returns:
             Diccionario con estadísticas agregadas de la ciudad
@@ -91,15 +94,31 @@ class InferenceService:
         if not city_dirs:
             return {"error": f"No se encontraron datos para '{city_prefix}'"}
 
+        # Recolectar todos los paths de imágenes
+        all_img_paths = []
+        for city_dir in sorted(city_dirs):
+            for img_path in sorted(city_dir.glob("img_*.npy")):
+                all_img_paths.append(img_path)
+
+        if not all_img_paths:
+            return {"error": f"No se encontraron imágenes para '{city_prefix}'"}
+
+        # Si hay límite, tomar una muestra aleatoria representativa
+        total_available = len(all_img_paths)
+        is_sample = False
+        if max_patches is not None and total_available > max_patches:
+            random.seed(42)
+            all_img_paths = random.sample(all_img_paths, max_patches)
+            is_sample = True
+
         total_pixels = {c: 0 for c in range(NUM_CLASSES)}
         total_patches = 0
 
-        for city_dir in sorted(city_dirs):
-            for img_path in sorted(city_dir.glob("img_*.npy")):
-                mask, _ = self.predict_patch(str(img_path))
-                for c in range(NUM_CLASSES):
-                    total_pixels[c] += (mask == c).sum()
-                total_patches += 1
+        for img_path in all_img_paths:
+            mask, _ = self.predict_patch(str(img_path))
+            for c in range(NUM_CLASSES):
+                total_pixels[c] += (mask == c).sum()
+            total_patches += 1
 
         grand_total = sum(total_pixels.values())
         if grand_total == 0:
@@ -108,10 +127,18 @@ class InferenceService:
         stats = {
             "ciudad": city_prefix,
             "patches_analizados": total_patches,
+            "total_patches_disponibles": total_available,
+            "es_muestra": is_sample,
             "estaciones": [d.name for d in city_dirs],
             "total_pixeles": int(grand_total),
             "distribucion": {}
         }
+
+        if is_sample:
+            stats["nota"] = (
+                f"Resultado basado en una muestra de {total_patches} patches "
+                f"de {total_available} disponibles. Los porcentajes son representativos."
+            )
 
         for c in range(NUM_CLASSES):
             stats["distribucion"][CLASS_NAMES[c]] = {
@@ -142,8 +169,6 @@ class InferenceService:
         cities = set()
         for d in data_path.iterdir():
             if d.is_dir():
-                # Extraer nombre de ciudad sin la estación
-                # Formato: ciudad_pais_estacion (ej: monterrey_mx_spring)
                 parts = d.name.rsplit("_", 1)
                 if len(parts) == 2:
                     cities.add(parts[0])
