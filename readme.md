@@ -23,12 +23,18 @@ Urban-Intelligence-Platform/
 │    ├── best_model.pth                 Mejor modelo obtenido
 │    └── results_test_results.json      Evaluacion del modelo                  
 ├── notebooks/
+├──  docs/
+│    └── knowledge/
+│            ├── doc_onu_habitat_estandares.txt   
+│            ├── doc_lulc_sentinel2.txt  
+│            └── doc_ciudades_perfil.txt               
 └── src/
     ├── phase3                          Fase de implementación de agentes con Anthropic
     │   ├── _init_.py
     │   ├── agent.py 
     │   ├── api.py
     │   ├── inference.py
+    │   ├── rag.py
     │   └── tools.py
     ├── cities_config.py                Selección de las ciudades. 
     ├── data_downloader.py              Descarga las imagnees del Sentinel-2

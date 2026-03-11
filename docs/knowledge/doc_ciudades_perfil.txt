@@ -1,0 +1,90 @@
+PERFIL URBANO DE LAS 10 CIUDADES DEL DATASET
+Urban Intelligence Platform
+
+=== AMSTERDAM, PAÍSES BAJOS ===
+Población metropolitana: ~2.5 millones de habitantes
+Características: Ciudad compacta con extensa red de canales. Alta densidad de áreas verdes y parques.
+Clima: Oceánico templado, 4 estaciones bien definidas.
+Uso de suelo esperado: Alta proporción de agua (canales), vegetación urbana bien distribuida, área urbana densa pero compacta.
+Estaciones disponibles en dataset: 3 (primavera, verano, otoño)
+Patches: 17,557
+
+=== BANGKOK, TAILANDIA ===
+Población metropolitana: ~16 millones de habitantes
+Características: Megaciudad tropical con rápida urbanización. El río Chao Phraya atraviesa la ciudad.
+Clima: Tropical monzónico, con estación seca y lluviosa.
+Uso de suelo esperado: Extensa área urbana, arrozales en periferia, cuerpos de agua significativos, vegetación tropical.
+Estaciones disponibles en dataset: 4
+Patches: 28,224
+
+=== BOGOTÁ, COLOMBIA ===
+Población metropolitana: ~11 millones de habitantes
+Características: Capital andina a 2,640 metros de altitud. Cerros orientales como barrera natural.
+Clima: Tropical de montaña, temperaturas estables todo el año.
+Uso de suelo esperado: Zona urbana extensa, cerros con vegetación nativa, humedales urbanos, expansión hacia la sabana.
+Estaciones disponibles en dataset: 1
+Patches: 7,056
+
+=== CIUDAD DE MÉXICO, MÉXICO ===
+Población metropolitana: ~21 millones de habitantes
+Características: Una de las ciudades más grandes del mundo. Valle rodeado de montañas y volcanes.
+Clima: Subtropical de montaña, con estación seca y lluviosa.
+Uso de suelo esperado: Masiva área urbana, zonas de conservación al sur (Xochimilco, Ajusco), suelo volcánico.
+Estaciones disponibles en dataset: 2
+Patches: 11,796
+
+=== DUBÁI, EMIRATOS ÁRABES UNIDOS ===
+Población metropolitana: ~3.5 millones de habitantes
+Características: Ciudad desértica con desarrollo urbano vertical intensivo. Costas artificiales.
+Clima: Desértico árido, temperaturas extremas en verano.
+Uso de suelo esperado: Predominio de suelo desnudo/árido, desarrollo urbano concentrado en la costa, muy poca vegetación natural, agua marina.
+Estaciones disponibles en dataset: 3
+Patches: 15,950
+
+=== HOUSTON, ESTADOS UNIDOS ===
+Población metropolitana: ~7 millones de habitantes
+Características: Ciudad petrolera con expansión suburbana horizontal masiva (urban sprawl). Sin zonificación.
+Clima: Subtropical húmedo, propenso a huracanes.
+Uso de suelo esperado: Extensa área urbana de baja densidad, vegetación subtropical, bayous y cuerpos de agua.
+Estaciones disponibles en dataset: 1
+Patches: 864
+
+=== MADRID, ESPAÑA ===
+Población metropolitana: ~6.7 millones de habitantes
+Características: Capital europea con centro histórico denso y expansión suburbana moderna.
+Clima: Mediterráneo continentalizado, veranos secos y calurosos.
+Uso de suelo esperado: Zona urbana central densa, parques grandes (Casa de Campo, El Retiro), periferia con suelo seco.
+Estaciones disponibles en dataset: 4
+Patches: 21,146
+
+=== MONTERREY, MÉXICO ===
+Población metropolitana: ~5.3 millones de habitantes
+Características: Centro industrial del noreste de México. Rodeada por la Sierra Madre Oriental (Cerro de la Silla).
+Clima: Semiárido cálido, con veranos muy calurosos.
+Uso de suelo esperado: Zona urbana industrial, vegetación de matorral xerófilo en montañas, suelo árido, poca agua superficial.
+Estaciones disponibles en dataset: 4
+Patches: 28,224
+
+=== MUMBAI (BOMBAY), INDIA ===
+Población metropolitana: ~21 millones de habitantes
+Características: Megaciudad costera, una de las más densamente pobladas del mundo. Zona de manglares.
+Clima: Tropical monzónico, con monsón intenso de junio a septiembre.
+Uso de suelo esperado: Alta densidad urbana, manglares costeros, zona marítima, vegetación tropical.
+Estaciones disponibles en dataset: 3
+Patches: 4,668
+
+=== NAIROBI, KENIA ===
+Población metropolitana: ~5 millones de habitantes
+Características: Capital africana a 1,795 metros de altitud. Parque Nacional Nairobi dentro de la ciudad.
+Clima: Tropical de meseta, templado por la altitud.
+Uso de suelo esperado: Zona urbana en crecimiento, extensas áreas verdes (sabana), parque nacional con fauna silvestre.
+Estaciones disponibles en dataset: 3
+Patches: 15,447
+
+=== COMPARATIVA ENTRE CIUDADES ===
+
+Ciudades con mayor urbanización esperada: Ciudad de México, Mumbai, Bangkok
+Ciudades con mayor vegetación esperada: Nairobi, Amsterdam, Bogotá
+Ciudades con más agua: Amsterdam (canales), Bangkok (río/canales), Mumbai (costa)
+Ciudades más áridas: Dubái, Monterrey, Madrid (verano)
+Diversidad geográfica: 6 continentes, 4 zonas climáticas, altitudes de 0 a 2,640 metros
