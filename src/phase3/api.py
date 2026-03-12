@@ -20,10 +20,13 @@ Documentación automática:
 import os
 import sys
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
+import numpy as np
+import tempfile
+import shutil
 
 # Agregar el directorio raíz al path
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
@@ -263,6 +266,91 @@ async def classify_city(city_name: str, max_patches: int = 50):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/upload-classify")
+async def upload_classify(file: UploadFile = File(...)):
+    """
+    Clasifica una imagen subida por el usuario usando el modelo U-Net.
+
+    Formatos aceptados:
+    - .npy  : array numpy de shape (6, H, W) o (H, W, 6), dtype float32
+    - .tif  : imagen GeoTIFF Sentinel-2 con 6 bandas (requiere rasterio)
+
+    Devuelve:
+    - distribucion: porcentaje de cada clase LULC
+    - mask_flat: máscara predicha como lista plana (para renderizar en canvas)
+    - mask_size: tamaño del lado de la máscara (siempre 256)
+    """
+    if inference_service is None:
+        raise HTTPException(status_code=503, detail="El modelo no está cargado.")
+
+    ext = Path(file.filename).suffix.lower()
+    if ext not in [".npy", ".tif", ".tiff"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Formato no soportado: {ext}. Usa .npy o .tif"
+        )
+
+    # Guardar archivo temporalmente
+    with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
+        shutil.copyfileobj(file.file, tmp)
+        tmp_path = tmp.name
+
+    try:
+        # Cargar la imagen según el formato
+        if ext == ".npy":
+            image = np.load(tmp_path).astype(np.float32)
+        else:
+            # .tif requiere rasterio
+            try:
+                import rasterio
+                with rasterio.open(tmp_path) as src:
+                    image = src.read().astype(np.float32)  # shape: (bands, H, W)
+            except ImportError:
+                raise HTTPException(
+                    status_code=422,
+                    detail="Para archivos .tif instala rasterio: pip install rasterio"
+                )
+
+        # Normalizar shape a (6, H, W)
+        if image.ndim == 3 and image.shape[2] == 6:
+            image = image.transpose(2, 0, 1)  # (H, W, 6) → (6, H, W)
+
+        # Validar shape
+        if image.ndim != 3 or image.shape[0] != 6:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Se esperan 6 bandas. Shape recibido: {image.shape}. "
+                       f"Asegúrate de que el array tenga shape (6, H, W) o (H, W, 6)."
+            )
+
+        # Resize a 256x256 si es necesario
+        import torch
+        import torch.nn.functional as F
+        tensor = torch.from_numpy(image).unsqueeze(0)  # (1, 6, H, W)
+        if tensor.shape[2] != 256 or tensor.shape[3] != 256:
+            tensor = F.interpolate(tensor, size=(256, 256), mode='bilinear', align_corners=False)
+
+        # Inferencia
+        tensor = tensor.to(inference_service.device)
+        with torch.no_grad():
+            output = inference_service.model(tensor)
+            mask = output.argmax(dim=1).squeeze(0).cpu().numpy()  # (256, 256)
+
+        # Calcular distribución
+        stats = inference_service._compute_stats(mask)
+
+        return {
+            "filename": file.filename,
+            "shape_original": list(image.shape),
+            "mask_size": 256,
+            "mask_flat": mask.flatten().tolist(),  # lista plana para canvas del frontend
+            "distribucion": stats,
+        }
+
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
 
 
 # ── Helpers ─────────────────────────────────────────────────────────
