@@ -14,10 +14,6 @@ Urban-Intelligence-Platform/
 ├── .env
 ├── .gitignore
 ├── readme.md
-├── frontend
-│   ├── package.json
-│   ├── vite.config.js
-│   └── index.html
 ├── requirements.txt
 ├── data/
 │   ├── chroma_db/ 
@@ -49,7 +45,10 @@ Urban-Intelligence-Platform/
     │   ├── inference.py
     │   ├── rag.py
     │   └── tools.py
-    └── phase4                                      Fase de Frontend
+    └── phase4 
+        ├── package.json                                     Fase de Frontend
+        ├── vite.config.js
+        ├── index.html
         ├── main.jsx
         ├── App.jsx 
         └── components/
