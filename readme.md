@@ -14,6 +14,10 @@ Urban-Intelligence-Platform/
 ├── .env
 ├── .gitignore
 ├── readme.md
+├── frontend
+│   ├── package.json
+│   ├── vite.config.js
+│   └── index.html
 ├── requirements.txt
 ├── data/
 │   ├── chroma_db/ 
@@ -30,13 +34,6 @@ Urban-Intelligence-Platform/
 │            ├── doc_lulc_sentinel2.txt  
 │            └── doc_ciudades_perfil.txt               
 └── src/
-    ├── phase3                                      Fase de implementación de agentes con Anthropic
-    │   ├── _init_.py
-    │   ├── agent.py 
-    │   ├── api.py
-    │   ├── inference.py
-    │   ├── rag.py
-    │   └── tools.py
     ├── cities_config.py                            Selección de las ciudades. 
     ├── data_downloader.py                          Descarga las imagnees del Sentinel-2
     ├── evaluate.py                                 Evaluación del modelo
@@ -44,5 +41,19 @@ Urban-Intelligence-Platform/
     ├── preprocessor.py                             Preprosesamiento de las imagnees
     ├── prueba_autenticación.py                     Prueba de autenticación de Sentinel-2
     ├── train.py                                    Entrenamiento de modelo
-    └── worldcover_downloader.py                    Descarga de Titles de las imagenes  
+    ├── worldcover_downloader.py                    Descarga de Titles de las imagenes  
+    ├── phase3                                      Fase de implementación de agentes con Anthropic
+    │   ├── _init_.py
+    │   ├── agent.py 
+    │   ├── api.py
+    │   ├── inference.py
+    │   ├── rag.py
+    │   └── tools.py
+    └── phase4                                      Fase de Frontend
+        ├── main.jsx
+        ├── App.jsx 
+        └── components/
+               ├── Map.jsx
+               ├── Chat.jsx
+               └── LULCChart.jsx
 ```
