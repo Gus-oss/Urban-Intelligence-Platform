@@ -11,13 +11,17 @@ __pycache__/
 # ========================
 venv/
 .env
-.vscode/
+.vscode/*
 
 # ========================
 # Data (NO subir Big Data)
 # ========================
 data/raw/*
 data/processed/*
+data/chroma_db/*
+# Node
+node_modules/
+src/phase4/node_modules/
 *.tif
 *.tiff
 *.h5
