@@ -18,9 +18,9 @@ Urban-Intelligence-Platform/
 ├── notebooks/
 ├── experiments/  
 ├── data/
-│   ├── chroma_db/ 
-│   ├── processed/                                  Carpeta de datos procesados
-│   └── raw/                                        Carpeta de datos sin procesar 
+│    ├── chroma_db/ 
+│    ├── processed/                                  Carpeta de datos procesados
+│    └── raw/                                        Carpeta de datos sin procesar 
 ├──  models/
 │    ├── best_model.pth                             Mejor modelo obtenido
 │    └── results_test_results.json                  Evaluacion del modelo 
@@ -39,19 +39,19 @@ Urban-Intelligence-Platform/
     ├── train.py                                    Entrenamiento de modelo
     ├── worldcover_downloader.py                    Descarga de Titles de las imagenes  
     ├── phase3                                      Fase de implementación de agentes con Anthropic
-    │   ├── _init_.py
-    │   ├── agent.py 
-    │   ├── api.py
-    │   ├── inference.py
-    │   ├── rag.py
-    │   └── tools.py
+    │    ├── _init_.py
+    │    ├── agent.py 
+    │    ├── api.py
+    │    ├── inference.py
+    │    ├── rag.py
+    │    └── tools.py
     └── phase4                                      Fase de Frontend
-        ├── package.json                            
-        ├── vite.config.js
-        ├── index.html
-        ├── main.jsx
-        ├── App.jsx 
-        └── components/
+         ├── package.json                            
+         ├── vite.config.js
+         ├── index.html
+         ├── main.jsx
+         ├── App.jsx 
+         └── components/
                ├── Map.jsx
                ├── Chat.jsx
                └── LULCChart.jsx
