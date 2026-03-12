@@ -14,21 +14,21 @@ Urban-Intelligence-Platform/
 ├── .env
 ├── .gitignore
 ├── readme.md
-├── requirements.txt
+├── requirements.txt 
+├── notebooks/
+├── experiments/  
 ├── data/
 │   ├── chroma_db/ 
 │   ├── processed/                                  Carpeta de datos procesados
-│   └── raw/                                        Carpeta de datos sin procesar
-├── experiments/
+│   └── raw/                                        Carpeta de datos sin procesar 
 ├──  models/
 │    ├── best_model.pth                             Mejor modelo obtenido
-│    └── results_test_results.json                  Evaluacion del modelo                  
-├── notebooks/
+│    └── results_test_results.json                  Evaluacion del modelo 
 ├──  docs/
 │    └── knowledge/
-│            ├── doc_onu_habitat_estandares.txt   
-│            ├── doc_lulc_sentinel2.txt  
-│            └── doc_ciudades_perfil.txt               
+│        ├── doc_onu_habitat_estandares.txt   
+│        ├── doc_lulc_sentinel2.txt  
+│        └── doc_ciudades_perfil.txt                            
 └── src/
     ├── cities_config.py                            Selección de las ciudades. 
     ├── data_downloader.py                          Descarga las imagnees del Sentinel-2
@@ -45,8 +45,8 @@ Urban-Intelligence-Platform/
     │   ├── inference.py
     │   ├── rag.py
     │   └── tools.py
-    └── phase4 
-        ├── package.json                                     Fase de Frontend
+    └── phase4                                      Fase de Frontend
+        ├── package.json                            
         ├── vite.config.js
         ├── index.html
         ├── main.jsx
