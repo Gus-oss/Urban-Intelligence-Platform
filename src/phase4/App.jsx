@@ -4,6 +4,7 @@ import Map, { CITIES } from './components/Map.jsx'
 import Chat from './components/Chat.jsx'
 import LULCChart from './components/LULCChart.jsx'
 import ImageUpload from './components/ImageUpload.jsx'
+import Rankings from './components/Rankings.jsx'
 
 const API_BASE = '/api'
 const CITY_LIST = Object.entries(CITIES).map(([key, val]) => ({ key, ...val }))
@@ -63,9 +64,10 @@ export default function App() {
   const city = selectedCity ? CITIES[selectedCity] : null
 
   const TABS = [
-    { id: 'map',    label: '🗺  MAPA'   },
-    { id: 'chat',   label: '💬  CHAT'   },
-    { id: 'upload', label: '📡  UPLOAD' },
+    { id: 'map',      label: '🗺  MAPA'     },
+    { id: 'chat',     label: '💬  CHAT'     },
+    { id: 'upload',   label: '📡  UPLOAD'   },
+    { id: 'rankings', label: '🏆  RANKINGS' },
   ]
 
   // ─── Estilos reutilizables ───────────────────────────────────────
@@ -221,7 +223,7 @@ export default function App() {
           pointerEvents: activePanel === 'map' ? 'all' : 'none',
           transition: 'opacity 0.3s',
         }}>
-          <Map selectedCity={selectedCity} onCitySelect={handleCitySelect} />
+          <Map selectedCity={selectedCity} onCitySelect={handleCitySelect} lulcData={lulcData} />
         </div>
 
         {/* Panel: CHAT */}
@@ -245,6 +247,18 @@ export default function App() {
           overflowY: 'auto',
         }}>
           <ImageUpload />
+        </div>
+
+        {/* Panel: RANKINGS */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          opacity: activePanel === 'rankings' ? 1 : 0,
+          pointerEvents: activePanel === 'rankings' ? 'all' : 'none',
+          transition: 'opacity 0.3s',
+          background: 'var(--bg-deep)',
+          overflowY: 'auto',
+        }}>
+          <Rankings />
         </div>
 
         {/* Tooltip ciudad seleccionada sobre el mapa */}

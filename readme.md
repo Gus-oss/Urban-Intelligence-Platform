@@ -54,5 +54,6 @@ Urban-Intelligence-Platform/
          └── components/
                ├── Map.jsx
                ├── Chat.jsx
+               ├── Rankings.jsx
                └── LULCChart.jsx
 ```

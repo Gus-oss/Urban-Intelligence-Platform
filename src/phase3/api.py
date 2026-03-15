@@ -68,8 +68,7 @@ inference_service = None
 
 # ── Modelos de request/response ──────────────────────────────────────
 class ChatRequest(BaseModel):
-    message: str
-    city: str | None = None
+    question: str
 
     class Config:
         json_schema_extra = {
@@ -150,7 +149,7 @@ async def chat_endpoint(request: ChatRequest):
         )
 
     try:
-        response = chat(agent, request.message)
+        response = chat(agent, request.question)
         return ChatResponse(response=response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -352,6 +351,83 @@ async def upload_classify(file: UploadFile = File(...)):
 
     finally:
         Path(tmp_path).unlink(missing_ok=True)
+
+
+@app.get("/rankings")
+async def get_rankings():
+    """
+    Devuelve los datos LULC de todas las ciudades para los rankings.
+    Lee desde models/lulc_cache.json si existe.
+    Ciudades sin clasificar aparecen con distribucion: null.
+    """
+    cache_path = ROOT_DIR / "models" / "lulc_cache.json"
+
+    # Estructura base con todas las ciudades
+    result = {}
+    for key, stats in DATASET_STATS.items():
+        result[key] = {
+            "nombre":       stats["nombre_completo"],
+            "region":       stats["region"],
+            "distribucion": None,
+        }
+
+    # Cargar cache si existe
+    if cache_path.exists():
+        import json
+        with open(cache_path) as f:
+            cache = json.load(f)
+        for key, data in cache.items():
+            if key in result:
+                result[key]["distribucion"] = data.get("distribucion")
+
+    classified = sum(1 for v in result.values() if v["distribucion"])
+    return {
+        "cities":     result,
+        "classified": classified,
+        "total":      len(result),
+    }
+
+
+@app.post("/compute-rankings")
+async def compute_rankings():
+    """
+    Clasifica todas las ciudades con el modelo U-Net y guarda los resultados
+    en models/lulc_cache.json para los rankings.
+    Advertencia: puede tardar 10-20 minutos en CPU.
+    """
+    if inference_service is None:
+        raise HTTPException(status_code=503, detail="El modelo no está cargado.")
+
+    import json
+    cache_path = ROOT_DIR / "models" / "lulc_cache.json"
+
+    # Cargar cache existente
+    cache = {}
+    if cache_path.exists():
+        with open(cache_path) as f:
+            cache = json.load(f)
+
+    errors = []
+    for city_key in DATASET_STATS:
+        if city_key in cache:
+            continue  # ya clasificada, saltar
+        try:
+            result = inference_service.predict_city(DATA_DIR, city_key, max_patches=50)
+            if "error" not in result:
+                cache[city_key] = {"distribucion": result.get("distribucion")}
+        except Exception as e:
+            errors.append(f"{city_key}: {str(e)}")
+
+    # Guardar cache actualizado
+    with open(cache_path, "w") as f:
+        json.dump(cache, f, ensure_ascii=False, indent=2)
+
+    return {
+        "status":     "ok",
+        "classified": len(cache),
+        "total":      len(DATASET_STATS),
+        "errors":     errors,
+    }
 
 
 # ── Helpers ─────────────────────────────────────────────────────────
