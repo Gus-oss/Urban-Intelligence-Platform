@@ -59,6 +59,12 @@ export default function App() {
     setCityStats(null)
     setLulcData(null)
     setActivePanel('map')
+    // Auto-clasificar al seleccionar ciudad
+    setLoadingLulc(true)
+    fetch(`${API_BASE}/classify/${key}?max_patches=50`)
+      .then(r => r.json())
+      .then(d => { setLulcData(d); setLoadingLulc(false) })
+      .catch(() => setLoadingLulc(false))
   }
 
   const city = selectedCity ? CITIES[selectedCity] : null
