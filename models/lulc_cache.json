@@ -1,0 +1,182 @@
+{
+  "amsterdam_nl": {
+    "distribucion": {
+      "Urbano/Construido": {
+        "pixeles": 281360,
+        "porcentaje": 8.59
+      },
+      "Vegetación/Bosque": {
+        "pixeles": 2052982,
+        "porcentaje": 62.65
+      },
+      "Agua": {
+        "pixeles": 509905,
+        "porcentaje": 15.56
+      },
+      "Suelo desnudo/Árido": {
+        "pixeles": 432553,
+        "porcentaje": 13.2
+      }
+    }
+  },
+  "bangkok_th": {
+    "distribucion": {
+      "Urbano/Construido": {
+        "pixeles": 550513,
+        "porcentaje": 16.8
+      },
+      "Vegetación/Bosque": {
+        "pixeles": 1033846,
+        "porcentaje": 31.55
+      },
+      "Agua": {
+        "pixeles": 362797,
+        "porcentaje": 11.07
+      },
+      "Suelo desnudo/Árido": {
+        "pixeles": 1329644,
+        "porcentaje": 40.58
+      }
+    }
+  },
+  "bogota_co": {
+    "distribucion": {
+      "Urbano/Construido": {
+        "pixeles": 171494,
+        "porcentaje": 5.23
+      },
+      "Vegetación/Bosque": {
+        "pixeles": 2927040,
+        "porcentaje": 89.33
+      },
+      "Agua": {
+        "pixeles": 2541,
+        "porcentaje": 0.08
+      },
+      "Suelo desnudo/Árido": {
+        "pixeles": 175725,
+        "porcentaje": 5.36
+      }
+    }
+  },
+  "dubai_ae": {
+    "distribucion": {
+      "Urbano/Construido": {
+        "pixeles": 187624,
+        "porcentaje": 5.73
+      },
+      "Vegetación/Bosque": {
+        "pixeles": 32291,
+        "porcentaje": 0.99
+      },
+      "Agua": {
+        "pixeles": 1193508,
+        "porcentaje": 36.42
+      },
+      "Suelo desnudo/Árido": {
+        "pixeles": 1863377,
+        "porcentaje": 56.87
+      }
+    }
+  },
+  "houston_us": {
+    "distribucion": {
+      "Urbano/Construido": {
+        "pixeles": 1023252,
+        "porcentaje": 31.23
+      },
+      "Vegetación/Bosque": {
+        "pixeles": 1914840,
+        "porcentaje": 58.44
+      },
+      "Agua": {
+        "pixeles": 203863,
+        "porcentaje": 6.22
+      },
+      "Suelo desnudo/Árido": {
+        "pixeles": 134845,
+        "porcentaje": 4.12
+      }
+    }
+  },
+  "madrid_es": {
+    "distribucion": {
+      "Urbano/Construido": {
+        "pixeles": 490221,
+        "porcentaje": 14.96
+      },
+      "Vegetación/Bosque": {
+        "pixeles": 1448521,
+        "porcentaje": 44.21
+      },
+      "Agua": {
+        "pixeles": 28509,
+        "porcentaje": 0.87
+      },
+      "Suelo desnudo/Árido": {
+        "pixeles": 1309549,
+        "porcentaje": 39.96
+      }
+    }
+  },
+  "monterrey_mx": {
+    "distribucion": {
+      "Urbano/Construido": {
+        "pixeles": 289581,
+        "porcentaje": 8.84
+      },
+      "Vegetación/Bosque": {
+        "pixeles": 2818402,
+        "porcentaje": 86.01
+      },
+      "Agua": {
+        "pixeles": 1572,
+        "porcentaje": 0.05
+      },
+      "Suelo desnudo/Árido": {
+        "pixeles": 167245,
+        "porcentaje": 5.1
+      }
+    }
+  },
+  "mumbai_in": {
+    "distribucion": {
+      "Urbano/Construido": {
+        "pixeles": 20237,
+        "porcentaje": 0.62
+      },
+      "Vegetación/Bosque": {
+        "pixeles": 2400031,
+        "porcentaje": 73.24
+      },
+      "Agua": {
+        "pixeles": 244220,
+        "porcentaje": 7.45
+      },
+      "Suelo desnudo/Árido": {
+        "pixeles": 612312,
+        "porcentaje": 18.69
+      }
+    }
+  },
+  "nairobi_ke": {
+    "distribucion": {
+      "Urbano/Construido": {
+        "pixeles": 140054,
+        "porcentaje": 4.27
+      },
+      "Vegetación/Bosque": {
+        "pixeles": 2817059,
+        "porcentaje": 85.97
+      },
+      "Agua": {
+        "pixeles": 8241,
+        "porcentaje": 0.25
+      },
+      "Suelo desnudo/Árido": {
+        "pixeles": 311446,
+        "porcentaje": 9.5
+      }
+    }
+  }
+}

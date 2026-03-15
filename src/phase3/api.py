@@ -68,7 +68,8 @@ inference_service = None
 
 # ── Modelos de request/response ──────────────────────────────────────
 class ChatRequest(BaseModel):
-    question: str
+    message: str
+    city: str | None = None
 
     class Config:
         json_schema_extra = {
@@ -149,7 +150,7 @@ async def chat_endpoint(request: ChatRequest):
         )
 
     try:
-        response = chat(agent, request.question)
+        response = chat(agent, request.message)
         return ChatResponse(response=response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

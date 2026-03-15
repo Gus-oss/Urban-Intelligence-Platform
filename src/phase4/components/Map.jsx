@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 // ─── Pon aquí tu token de Mapbox ────────────────────────────────────
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'TU_TOKEN_AQUI'
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
 export const CITIES = {
   amsterdam_nl:   { name: 'Amsterdam',         country: 'Netherlands',     lat: 52.3676,  lng: 4.9041   },
