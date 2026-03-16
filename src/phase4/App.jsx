@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Activity, Database, Zap } from 'lucide-react'
 import Map, { CITIES } from './components/Map.jsx'
 import Chat from './components/Chat.jsx'
