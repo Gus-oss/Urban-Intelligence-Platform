@@ -5,6 +5,7 @@ import Chat from './components/Chat.jsx'
 import LULCChart from './components/LULCChart.jsx'
 import ImageUpload from './components/ImageUpload.jsx'
 import Rankings from './components/Rankings.jsx'
+import LocationSearch from './components/LocationSearch.jsx'
 
 const API_BASE = '/api'
 const CITY_LIST = Object.entries(CITIES).map(([key, val]) => ({ key, ...val }))
@@ -25,19 +26,41 @@ export default function App() {
     return () => clearInterval(t)
   }, [])
 
-  // Health check al montar
+  // Health check con reintentos automáticos hasta que el backend esté listo
   useEffect(() => {
-    fetch(`${API_BASE}/health`)
-      .then(r => r.json())
-      .then(setHealth)
-      .catch(() => setHealth(null))
+    let attempts = 0
+    const maxAttempts = 20  // intentar hasta ~60 segundos
+
+    const tryHealth = () => {
+      fetch(`${API_BASE}/health`)
+        .then(r => r.json())
+        .then(data => {
+          setHealth(data)
+          // Si el modelo aún no cargó, seguir intentando
+          if (!data.model_loaded && attempts < maxAttempts) {
+            attempts++
+            setTimeout(tryHealth, 3000)
+          }
+        })
+        .catch(() => {
+          // Backend no disponible aún, reintentar
+          if (attempts < maxAttempts) {
+            attempts++
+            setTimeout(tryHealth, 3000)
+          }
+        })
+    }
+
+    tryHealth()
   }, [])
+
+  const lulcCache = useRef({})  // caché por ciudad para evitar re-clasificación
 
   // Stats de ciudad al seleccionar
   useEffect(() => {
     if (!selectedCity) return
     setLoadingStats(true)
-    setLulcData(null)
+    // NO limpiar lulcData aquí — genera race condition con la clasificación
     fetch(`${API_BASE}/stats/${selectedCity}`)
       .then(r => r.json())
       .then(d => { setCityStats(d); setLoadingStats(false) })
@@ -50,20 +73,36 @@ export default function App() {
     setLulcData(null)
     fetch(`${API_BASE}/classify/${selectedCity}?max_patches=50`)
       .then(r => r.json())
-      .then(d => { setLulcData(d); setLoadingLulc(false) })
+      .then(d => {
+        lulcCache.current[selectedCity] = d  // actualizar caché
+        setLulcData(d)
+        setLoadingLulc(false)
+      })
       .catch(() => setLoadingLulc(false))
   }
 
   const handleCitySelect = (key) => {
     setSelectedCity(key)
     setCityStats(null)
-    setLulcData(null)
     setActivePanel('map')
-    // Auto-clasificar al seleccionar ciudad
+
+    // Si ya tenemos datos en caché, usarlos directamente
+    if (lulcCache.current[key]) {
+      setLulcData(lulcCache.current[key])
+      setLoadingLulc(false)
+      return
+    }
+
+    // Primera vez — clasificar y guardar en caché
+    setLulcData(null)
     setLoadingLulc(true)
     fetch(`${API_BASE}/classify/${key}?max_patches=50`)
       .then(r => r.json())
-      .then(d => { setLulcData(d); setLoadingLulc(false) })
+      .then(d => {
+        lulcCache.current[key] = d  // guardar en caché
+        setLulcData(d)
+        setLoadingLulc(false)
+      })
       .catch(() => setLoadingLulc(false))
   }
 
@@ -71,6 +110,7 @@ export default function App() {
 
   const TABS = [
     { id: 'map',      label: '🗺  MAPA'     },
+    { id: 'search',   label: '🔍  BUSCAR'   },
     { id: 'chat',     label: '💬  CHAT'     },
     { id: 'upload',   label: '📡  UPLOAD'   },
     { id: 'rankings', label: '🏆  RANKINGS' },
@@ -243,6 +283,20 @@ export default function App() {
           background: 'var(--bg-deep)',
         }}>
           <Chat selectedCity={selectedCity} cityName={city?.name} />
+        </div>
+
+        {/* Panel: BUSCAR */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          opacity: activePanel === 'search' ? 1 : 0,
+          pointerEvents: activePanel === 'search' ? 'all' : 'none',
+          transition: 'opacity 0.3s',
+          background: 'var(--bg-deep)',
+          overflowY: 'auto',
+        }}>
+          <LocationSearch onLocationAnalyzed={(data) => {
+            // Opcional: mostrar resultado también en el panel derecho
+          }} />
         </div>
 
         {/* Panel: UPLOAD */}
