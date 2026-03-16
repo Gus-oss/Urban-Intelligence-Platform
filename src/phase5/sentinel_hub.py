@@ -2,20 +2,21 @@
 Sentinel Hub Service — descarga imágenes Sentinel-2 por coordenadas.
 Urban Intelligence Platform - Fase 5
 
+Usa OAuth2 (Client Credentials) para autenticación.
 Documentación: https://docs.sentinel-hub.com/api/latest/api/process/
 """
-import os
 import io
+import time
+import math
 import numpy as np
 import requests
 from datetime import datetime, timedelta
 from typing import Tuple, Optional
 
 
-SENTINEL_HUB_URL = "https://services.sentinel-hub.com/api/v1/process"
+SENTINEL_HUB_URL   = "https://services.sentinel-hub.com/api/v1/process"
+SENTINEL_HUB_TOKEN = "https://services.sentinel-hub.com/auth/realms/main/protocol/openid-connect/token"
 
-# Evalscript: devuelve las 6 bandas que necesita el modelo U-Net
-# B02=Blue, B03=Green, B04=Red, B08=NIR, B11=SWIR1, B12=SWIR2
 EVALSCRIPT = """
 //VERSION=3
 function setup() {
@@ -24,10 +25,7 @@ function setup() {
       bands: ["B02", "B03", "B04", "B08", "B11", "B12"],
       units: "REFLECTANCE"
     }],
-    output: {
-      bands: 6,
-      sampleType: "FLOAT32"
-    }
+    output: { bands: 6, sampleType: "FLOAT32" }
   };
 }
 function evaluatePixel(sample) {
@@ -36,107 +34,74 @@ function evaluatePixel(sample) {
 }
 """
 
+EVALSCRIPT_RGB = """
+//VERSION=3
+function setup() {
+  return {
+    input: [{ bands: ["B04", "B03", "B02"], units: "REFLECTANCE" }],
+    output: { bands: 3, sampleType: "UINT8" }
+  };
+}
+function evaluatePixel(sample) {
+  return [
+    Math.min(255, sample.B04 * 3.5 * 255),
+    Math.min(255, sample.B03 * 3.5 * 255),
+    Math.min(255, sample.B02 * 3.5 * 255)
+  ];
+}
+"""
+
 
 class SentinelHubService:
-    """Descarga imágenes Sentinel-2 usando la API de Sentinel Hub."""
+    """Descarga imágenes Sentinel-2 usando OAuth2 + Process API."""
 
-    def __init__(self, api_key: str):
-        self.api_key  = api_key
-        self.headers  = {
-            "Authorization": f"ApiKey {api_key}",
-            "Content-Type":  "application/json",
-            "Accept":        "application/tar",
-        }
+    def __init__(self, client_id: str, client_secret: str):
+        self.client_id     = client_id
+        self.client_secret = client_secret
+        self._token        = None
+        self._token_expiry = 0
 
-    def get_image_for_location(
-        self,
-        lat: float,
-        lng: float,
-        size_km: float = 10.0,
-        max_cloud_coverage: float = 0.3,
-        days_back: int = 90,
-    ) -> Tuple[np.ndarray, dict]:
-        """
-        Descarga la imagen Sentinel-2 más reciente para unas coordenadas.
+    def _get_token(self) -> str:
+        """Obtiene o renueva el access token via OAuth2 client credentials."""
+        if self._token and time.time() < self._token_expiry - 60:
+            return self._token
 
-        Args:
-            lat               : Latitud del centro
-            lng               : Longitud del centro
-            size_km           : Tamaño del área en km (cuadrado)
-            max_cloud_coverage: Cobertura máxima de nubes (0-1)
-            days_back         : Buscar imágenes de los últimos N días
-
-        Returns:
-            image: Array numpy (6, 256, 256) float32 listo para el modelo
-            meta : Metadata (fecha, nubosidad, bbox)
-        """
-        bbox   = self._coords_to_bbox(lat, lng, size_km)
-        dates  = self._get_date_range(days_back)
-
-        payload = {
-            "input": {
-                "bounds": {
-                    "bbox": bbox,
-                    "properties": {"crs": "http://www.opengis.net/def/crs/EPSG/0/4326"},
-                },
-                "data": [{
-                    "dataFilter": {
-                        "timeRange": {
-                            "from": dates["from"],
-                            "to":   dates["to"],
-                        },
-                        "maxCloudCoverage": max_cloud_coverage * 100,
-                        "mosaickingOrder": "leastCC",  # menos nubes primero
-                    },
-                    "type": "sentinel-2-l2a",
-                }],
+        res = requests.post(
+            SENTINEL_HUB_TOKEN,
+            data={
+                "grant_type":    "client_credentials",
+                "client_id":     self.client_id,
+                "client_secret": self.client_secret,
             },
-            "output": {
-                "width":  256,
-                "height": 256,
-                "responses": [{
-                    "identifier": "default",
-                    "format": {"type": "image/tiff", "parameters": {"dataType": "float32"}},
-                }],
-            },
-            "evalscript": EVALSCRIPT,
-        }
-
-        response = requests.post(
-            SENTINEL_HUB_URL,
-            json=payload,
-            headers=self.headers,
-            timeout=60,
+            timeout=30,
         )
 
-        if response.status_code == 200:
-            image = self._parse_tiff_response(response.content)
-            meta  = {
-                "bbox":       bbox,
-                "date_range": dates,
-                "size_km":    size_km,
-                "shape":      list(image.shape),
-            }
-            return image, meta
-
-        elif response.status_code == 400:
-            # Puede ser que no haya imágenes disponibles — ampliar rango
-            raise ValueError(
-                f"Sin imágenes disponibles para esta ubicación en los últimos "
-                f"{days_back} días. Intenta aumentar el rango de fechas o "
-                f"reducir el filtro de nubosidad. Detalle: {response.text}"
-            )
-        else:
+        if res.status_code != 200:
             raise RuntimeError(
-                f"Error de Sentinel Hub ({response.status_code}): {response.text}"
+                f"Error de autenticación Sentinel Hub ({res.status_code}): {res.text}"
             )
+
+        data               = res.json()
+        self._token        = data["access_token"]
+        self._token_expiry = time.time() + data.get("expires_in", 3600)
+        return self._token
+
+    @property
+    def _headers(self) -> dict:
+        return {
+            "Authorization": f"Bearer {self._get_token()}",
+            "Content-Type":  "application/json",
+        }
+
+    @property
+    def _headers_png(self) -> dict:
+        return {
+            "Authorization": f"Bearer {self._get_token()}",
+            "Content-Type":  "application/json",
+            "Accept":        "image/png",
+        }
 
     def _coords_to_bbox(self, lat: float, lng: float, size_km: float) -> list:
-        """
-        Convierte lat/lng + tamaño en km a bounding box [minX, minY, maxX, maxY].
-        Aproximación: 1° lat ≈ 111 km, 1° lng ≈ 111 * cos(lat) km
-        """
-        import math
         delta_lat = (size_km / 2) / 111.0
         delta_lng = (size_km / 2) / (111.0 * math.cos(math.radians(lat)))
         return [
@@ -147,7 +112,6 @@ class SentinelHubService:
         ]
 
     def _get_date_range(self, days_back: int) -> dict:
-        """Genera el rango de fechas para buscar imágenes."""
         end   = datetime.utcnow()
         start = end - timedelta(days=days_back)
         return {
@@ -155,20 +119,13 @@ class SentinelHubService:
             "to":   end.strftime("%Y-%m-%dT23:59:59Z"),
         }
 
-    def _parse_tiff_response(self, content: bytes) -> np.ndarray:
-        """
-        Parsea la respuesta TIFF de Sentinel Hub a array numpy (6, 256, 256).
-        Intenta con rasterio primero, luego con PIL como fallback.
-        """
+    def _parse_tiff(self, content: bytes) -> np.ndarray:
         try:
             import rasterio
             with rasterio.open(io.BytesIO(content)) as src:
-                image = src.read().astype(np.float32)  # (bands, H, W)
-            return image
+                return src.read().astype(np.float32)
         except ImportError:
             pass
-
-        # Fallback con PIL (solo para imágenes RGB, no multi-banda)
         try:
             from PIL import Image
             img = Image.open(io.BytesIO(content))
@@ -179,29 +136,66 @@ class SentinelHubService:
                 arr = arr.transpose(2, 0, 1)
             return arr
         except Exception as e:
-            raise RuntimeError(f"No se pudo parsear la imagen TIFF: {e}")
+            raise RuntimeError(f"No se pudo parsear el TIFF: {e}")
+
+    def get_image_for_location(
+        self,
+        lat: float,
+        lng: float,
+        size_km: float = 10.0,
+        max_cloud_coverage: float = 0.3,
+        days_back: int = 90,
+    ) -> Tuple[np.ndarray, dict]:
+        """
+        Descarga imagen Sentinel-2 (6 bandas) para unas coordenadas.
+        Returns: (array numpy (6,256,256), metadata dict)
+        """
+        bbox  = self._coords_to_bbox(lat, lng, size_km)
+        dates = self._get_date_range(days_back)
+
+        payload = {
+            "input": {
+                "bounds": {
+                    "bbox": bbox,
+                    "properties": {"crs": "http://www.opengis.net/def/crs/EPSG/0/4326"},
+                },
+                "data": [{
+                    "dataFilter": {
+                        "timeRange": {"from": dates["from"], "to": dates["to"]},
+                        "maxCloudCoverage": int(max_cloud_coverage * 100),
+                        "mosaickingOrder": "leastCC",
+                    },
+                    "type": "sentinel-2-l2a",
+                }],
+            },
+            "output": {
+                "width": 256, "height": 256,
+                "responses": [{
+                    "identifier": "default",
+                    "format": {"type": "image/tiff", "parameters": {"dataType": "float32"}},
+                }],
+            },
+            "evalscript": EVALSCRIPT,
+        }
+
+        res = requests.post(
+            SENTINEL_HUB_URL, json=payload,
+            headers=self._headers, timeout=60,
+        )
+
+        if res.status_code == 200:
+            image = self._parse_tiff(res.content)
+            return image, {"bbox": bbox, "date_range": dates, "size_km": size_km, "shape": list(image.shape)}
+        elif res.status_code == 400:
+            raise ValueError(
+                f"Sin imágenes disponibles para esta ubicación en los últimos {days_back} días. "
+                f"Intenta aumentar el rango de fechas o reducir el filtro de nubosidad."
+            )
+        else:
+            raise RuntimeError(f"Error de Sentinel Hub ({res.status_code}): {res.text}")
 
     def get_preview_rgb(self, lat: float, lng: float, size_km: float = 10.0) -> bytes:
-        """
-        Descarga una imagen RGB (PNG) de vista previa para mostrar en el frontend.
-        Usa las bandas B04 (R), B03 (G), B02 (B).
-        """
-        evalscript_rgb = """
-        //VERSION=3
-        function setup() {
-          return {
-            input: [{ bands: ["B04", "B03", "B02"], units: "REFLECTANCE" }],
-            output: { bands: 3, sampleType: "UINT8" }
-          };
-        }
-        function evaluatePixel(sample) {
-          return [
-            Math.min(255, sample.B04 * 3.5 * 255),
-            Math.min(255, sample.B03 * 3.5 * 255),
-            Math.min(255, sample.B02 * 3.5 * 255)
-          ];
-        }
-        """
+        """Descarga imagen RGB (PNG) de vista previa."""
         bbox  = self._coords_to_bbox(lat, lng, size_km)
         dates = self._get_date_range(90)
 
@@ -227,14 +221,14 @@ class SentinelHubService:
                     "format": {"type": "image/png"},
                 }],
             },
-            "evalscript": evalscript_rgb,
+            "evalscript": EVALSCRIPT_RGB,
         }
 
-        headers = {**self.headers, "Accept": "image/png"}
-        response = requests.post(
-            SENTINEL_HUB_URL, json=payload, headers=headers, timeout=60
+        res = requests.post(
+            SENTINEL_HUB_URL, json=payload,
+            headers=self._headers_png, timeout=60,
         )
 
-        if response.status_code == 200:
-            return response.content
-        raise RuntimeError(f"Error obteniendo preview ({response.status_code}): {response.text}")
+        if res.status_code == 200:
+            return res.content
+        raise RuntimeError(f"Error obteniendo preview ({res.status_code}): {res.text}")
