@@ -68,8 +68,7 @@ inference_service = None
 
 # ── Modelos de request/response ──────────────────────────────────────
 class ChatRequest(BaseModel):
-    message: str
-    city: str | None = None
+    question: str
 
     class Config:
         json_schema_extra = {
@@ -150,7 +149,7 @@ async def chat_endpoint(request: ChatRequest):
         )
 
     try:
-        response = chat(agent, request.message)
+        response = chat(agent, request.question)
         return ChatResponse(response=response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -481,6 +480,11 @@ async def compute_rankings():
 
 
 # ── Helpers ─────────────────────────────────────────────────────────
+def get_inference_service():
+    """Helper para que phase5 pueda acceder al inference_service."""
+    return inference_service
+
+
 def _find_city(city_name: str):
     """Busca una ciudad por nombre parcial."""
     for key in DATASET_STATS:
