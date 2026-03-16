@@ -60,6 +60,10 @@ Urban-Intelligence-Platform/
     │          ├── Map.jsx
     │          ├── Chat.jsx
     │          ├── Rankings.jsx
-    │           └── LULCChart.jsx
+    │          └── LULCChart.jsx
     └── phase5
+         ├── __init__.py
+         ├── api.py
+         ├── sentinel_hub.py
+         └── inference_gcs.py
 ```
