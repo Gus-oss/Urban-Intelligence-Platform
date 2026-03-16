@@ -11,10 +11,10 @@ export const CITIES = {
   dubai_ae:       { name: 'Dubai',            region: 'Asia — Emiratos Á.U.',       lat: 25.2048,  lng: 55.2708,   osmId: 3766483 },
   houston_us:     { name: 'Houston',          region: 'América del Norte — EE.UU.', lat: 29.7604,  lng: -95.3698,  osmId: 2688911 },
   madrid_es:      { name: 'Madrid',           region: 'Europa — España',            lat: 40.4168,  lng: -3.7038,   osmId: 5326784 },
-  mexico_city_mx: { name: 'Ciudad de México', region: 'América del Norte — México', lat: 19.4326,  lng: -99.1332,  osmId: 1376914 },
+  mexico_city_mx: { name: 'Ciudad de México', region: 'América del Norte — México', lat: 19.4326,  lng: -99.1332,  osmId: 1376330 },
   monterrey_mx:   { name: 'Monterrey',        region: 'América del Norte — México', lat: 25.6866,  lng: -100.3161, osmId: 5606060 },
-  mumbai_in:      { name: 'Mumbai',           region: 'Asia — India',               lat: 19.0760,  lng: 72.8777,   osmId: 1070822 },
-  nairobi_ke:     { name: 'Nairobi',          region: 'África — Kenia',             lat: -1.2921,  lng: 36.8219,   osmId: 176135 },
+  mumbai_in:      { name: 'Mumbai',           region: 'Asia — India',               lat: 19.0760,  lng: 72.8777,   osmId: 7888990 },
+  nairobi_ke:     { name: 'Nairobi',          region: 'África — Kenia',             lat: -1.2921,  lng: 36.8219,   osmId: 9721587 },
 }
 
 function blendLULCColor(distribucion) {
@@ -34,12 +34,30 @@ function blendLULCColor(distribucion) {
 }
 
 async function fetchPolygonByOsmId(osmId) {
+  // Overpass API — más confiable que Nominatim para relaciones complejas
+  const query = `[out:json][timeout:30];relation(${osmId});out geom;`
+  const url   = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`
   try {
-    const url  = `https://nominatim.openstreetmap.org/lookup?osm_ids=R${osmId}&polygon_geojson=1&format=json`
-    const res  = await fetch(url, { headers: { 'Accept-Language': 'en' } })
+    const res  = await fetch(url)
     const data = await res.json()
-    if (!data?.length || !data[0].geojson) return null
-    return { type: 'Feature', geometry: data[0].geojson, properties: {} }
+    if (!data.elements?.length) return null
+    const rel = data.elements[0]
+    if (!rel.members) return null
+    const outerWays = rel.members.filter(m => m.type === 'way' && m.role !== 'inner')
+    const innerWays = rel.members.filter(m => m.type === 'way' && m.role === 'inner')
+    const toCoords  = (way) => way.geometry?.map(p => [p.lon, p.lat]) || []
+    const closeRing = (coords) => {
+      if (!coords.length) return coords
+      const first = coords[0], last = coords[coords.length - 1]
+      return (first[0] !== last[0] || first[1] !== last[1]) ? [...coords, coords[0]] : coords
+    }
+    const outerRings = outerWays.map(toCoords).filter(c => c.length > 2).map(closeRing)
+    const innerRings = innerWays.map(toCoords).filter(c => c.length > 2).map(closeRing)
+    if (!outerRings.length) return null
+    const geometry = (outerRings.length === 1 && innerRings.length === 0)
+      ? { type: 'Polygon',      coordinates: [outerRings[0]] }
+      : { type: 'MultiPolygon', coordinates: outerRings.map(o => [o, ...innerRings]) }
+    return { type: 'Feature', geometry, properties: {} }
   } catch { return null }
 }
 
