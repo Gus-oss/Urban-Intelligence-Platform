@@ -73,7 +73,9 @@ export default function LocationSearch({ onLocationAnalyzed }) {
         address: selected.name,
         size_km: sizeKm,
       })
-      const res  = await fetch(`${API_BASE}/analyze-location?${params}`)
+      const res = await fetch(`${API_BASE}/analyze-location?${params}`, {
+        method: 'POST',
+      })
       const data = await res.json()
 
       if (!res.ok) {
