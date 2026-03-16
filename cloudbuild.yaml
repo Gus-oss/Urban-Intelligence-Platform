@@ -1,0 +1,118 @@
+steps:
+  # ── 1. Build imagen del backend ─────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: build-backend
+    args:
+      - build
+      - -f
+      - Dockerfile.backend
+      - -t
+      - gcr.io/$PROJECT_ID/urban-intelligence-backend:$COMMIT_SHA
+      - -t
+      - gcr.io/$PROJECT_ID/urban-intelligence-backend:latest
+      - .
+
+  # ── 2. Push imagen del backend ──────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: push-backend
+    waitFor: ['build-backend']
+    args:
+      - push
+      - gcr.io/$PROJECT_ID/urban-intelligence-backend:$COMMIT_SHA
+
+  # ── 3. Deploy backend a Cloud Run ───────────────────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: deploy-backend
+    waitFor: ['push-backend']
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - urban-intelligence-backend
+      - --image=gcr.io/$PROJECT_ID/urban-intelligence-backend:$COMMIT_SHA
+      - --region=us-central1
+      - --platform=managed
+      - --allow-unauthenticated
+      - --memory=4Gi
+      - --cpu=2
+      - --timeout=300
+      - --concurrency=4
+      - --min-instances=0
+      - --max-instances=3
+      - --set-env-vars=GCS_BUCKET=urban-intelligence-lulc,USE_GCS=true
+      - --set-secrets=ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest,SENTINEL_HUB_API_KEY=SENTINEL_HUB_API_KEY:latest
+
+  # ── 4. Obtener URL del backend ──────────────────────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: get-backend-url
+    waitFor: ['deploy-backend']
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        BACKEND_URL=$(gcloud run services describe urban-intelligence-backend \
+          --region=us-central1 \
+          --format='value(status.url)')
+        echo "Backend URL: $BACKEND_URL"
+        echo $BACKEND_URL > /workspace/backend_url.txt
+
+  # ── 5. Build imagen del frontend ────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: build-frontend
+    waitFor: ['get-backend-url']
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        BACKEND_URL=$(cat /workspace/backend_url.txt)
+        # Reemplazar placeholder en nginx.conf
+        sed -i "s|BACKEND_URL_PLACEHOLDER|$BACKEND_URL|g" nginx.conf
+        docker build \
+          -f Dockerfile.frontend \
+          --build-arg VITE_MAPBOX_TOKEN=$$VITE_MAPBOX_TOKEN \
+          --build-arg VITE_API_URL=$BACKEND_URL \
+          -t gcr.io/$PROJECT_ID/urban-intelligence-frontend:$COMMIT_SHA \
+          -t gcr.io/$PROJECT_ID/urban-intelligence-frontend:latest \
+          .
+    secretEnv: ['VITE_MAPBOX_TOKEN']
+
+  # ── 6. Push imagen del frontend ─────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: push-frontend
+    waitFor: ['build-frontend']
+    args:
+      - push
+      - gcr.io/$PROJECT_ID/urban-intelligence-frontend:$COMMIT_SHA
+
+  # ── 7. Deploy frontend a Cloud Run ──────────────────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: deploy-frontend
+    waitFor: ['push-frontend']
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - urban-intelligence-frontend
+      - --image=gcr.io/$PROJECT_ID/urban-intelligence-frontend:$COMMIT_SHA
+      - --region=us-central1
+      - --platform=managed
+      - --allow-unauthenticated
+      - --memory=512Mi
+      - --cpu=1
+      - --timeout=30
+      - --concurrency=80
+      - --min-instances=0
+      - --max-instances=5
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/VITE_MAPBOX_TOKEN/versions/latest
+      env: 'VITE_MAPBOX_TOKEN'
+
+images:
+  - gcr.io/$PROJECT_ID/urban-intelligence-backend:$COMMIT_SHA
+  - gcr.io/$PROJECT_ID/urban-intelligence-frontend:$COMMIT_SHA
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
