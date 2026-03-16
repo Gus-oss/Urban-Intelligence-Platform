@@ -11,10 +11,10 @@ export const CITIES = {
   dubai_ae:       { name: 'Dubai',            region: 'Asia — Emiratos Á.U.',       lat: 25.2048,  lng: 55.2708,   osmId: 3766483 },
   houston_us:     { name: 'Houston',          region: 'América del Norte — EE.UU.', lat: 29.7604,  lng: -95.3698,  osmId: 2688911 },
   madrid_es:      { name: 'Madrid',           region: 'Europa — España',            lat: 40.4168,  lng: -3.7038,   osmId: 5326784 },
-  mexico_city_mx: { name: 'Ciudad de México', region: 'América del Norte — México', lat: 19.4326,  lng: -99.1332,  osmId: 6279304 },
+  mexico_city_mx: { name: 'Ciudad de México', region: 'América del Norte — México', lat: 19.4326,  lng: -99.1332,  osmId: 1376914 },
   monterrey_mx:   { name: 'Monterrey',        region: 'América del Norte — México', lat: 25.6866,  lng: -100.3161, osmId: 5606060 },
-  mumbai_in:      { name: 'Mumbai',           region: 'Asia — India',               lat: 19.0760,  lng: 72.8777,   osmId: 7888990 },
-  nairobi_ke:     { name: 'Nairobi',          region: 'África — Kenia',             lat: -1.2921,  lng: 36.8219,   osmId: 1394189 },
+  mumbai_in:      { name: 'Mumbai',           region: 'Asia — India',               lat: 19.0760,  lng: 72.8777,   osmId: 1070822 },
+  nairobi_ke:     { name: 'Nairobi',          region: 'África — Kenia',             lat: -1.2921,  lng: 36.8219,   osmId: 176135 },
 }
 
 function blendLULCColor(distribucion) {
