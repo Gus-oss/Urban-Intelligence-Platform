@@ -6,13 +6,13 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
 export const CITIES = {
   amsterdam_nl:   { name: 'Amsterdam',       region: 'Europa — Países Bajos',      lat: 52.3676,  lng: 4.9041,    osmId: 271110  },
-  bangkok_th:     { name: 'Bangkok',          region: 'Asia — Tailandia',           lat: 13.7563,  lng: 100.5018,  osmId: 1247067 },
+  bangkok_th:     { name: 'Bangkok',          region: 'Asia — Tailandia',           lat: 13.7563,  lng: 100.5018,  osmId: 92277 },
   bogota_co:      { name: 'Bogotá',           region: 'América del Sur — Colombia', lat: 4.7110,   lng: -74.0721,  osmId: 7426387 },
-  dubai_ae:       { name: 'Dubai',            region: 'Asia — Emiratos Á.U.',       lat: 25.2048,  lng: 55.2708,   osmId: 3765254 },
+  dubai_ae:       { name: 'Dubai',            region: 'Asia — Emiratos Á.U.',       lat: 25.2048,  lng: 55.2708,   osmId: 3766483 },
   houston_us:     { name: 'Houston',          region: 'América del Norte — EE.UU.', lat: 29.7604,  lng: -95.3698,  osmId: 2688911 },
   madrid_es:      { name: 'Madrid',           region: 'Europa — España',            lat: 40.4168,  lng: -3.7038,   osmId: 5326784 },
   mexico_city_mx: { name: 'Ciudad de México', region: 'América del Norte — México', lat: 19.4326,  lng: -99.1332,  osmId: 6279304 },
-  monterrey_mx:   { name: 'Monterrey',        region: 'América del Norte — México', lat: 25.6866,  lng: -100.3161, osmId: 3698341 },
+  monterrey_mx:   { name: 'Monterrey',        region: 'América del Norte — México', lat: 25.6866,  lng: -100.3161, osmId: 5606060 },
   mumbai_in:      { name: 'Mumbai',           region: 'Asia — India',               lat: 19.0760,  lng: 72.8777,   osmId: 7888990 },
   nairobi_ke:     { name: 'Nairobi',          region: 'África — Kenia',             lat: -1.2921,  lng: 36.8219,   osmId: 1394189 },
 }
