@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Upload, X, Zap, FileCode } from 'lucide-react'
+import { Upload, X, Zap, FileCode, Layers } from 'lucide-react'
 
 const API_BASE = '/api'
 
@@ -17,25 +17,41 @@ const CLASS_LABELS = [
   { name: 'Suelo desnudo/Árido', color: '#ffd43b', icon: '🏜️' },
 ]
 
+const FORMATS = [
+  { ext: '.jpg / .png', desc: 'Imagen RGB — conversión automática a 6 bandas', icon: '🖼️' },
+  { ext: '.npy',        desc: 'Array numpy (6, H, W) — formato nativo del modelo', icon: '📊' },
+  { ext: '.tif',        desc: 'GeoTIFF Sentinel-2 con 6 bandas reales', icon: '🛰️' },
+]
+
 export default function ImageUpload() {
-  const [dragging, setDragging] = useState(false)
-  const [file,     setFile]     = useState(null)
-  const [result,   setResult]   = useState(null)
-  const [loading,  setLoading]  = useState(false)
-  const [error,    setError]    = useState(null)
-  const inputRef  = useRef(null)
-  const canvasRef = useRef(null)
+  const [dragging,  setDragging]  = useState(false)
+  const [file,      setFile]      = useState(null)
+  const [preview,   setPreview]   = useState(null)  // URL preview local
+  const [result,    setResult]    = useState(null)
+  const [loading,   setLoading]   = useState(false)
+  const [error,     setError]     = useState(null)
+  const [opacity,   setOpacity]   = useState(0.55)  // opacidad de la máscara
+  const [showMask,  setShowMask]  = useState(true)
+  const inputRef    = useRef(null)
+  const canvasRef   = useRef(null)  // canvas de la máscara overlay
+  const imgRef      = useRef(null)  // imagen original
 
   const handleFile = (f) => {
     if (!f) return
     const ext = f.name.split('.').pop().toLowerCase()
-    if (!['npy', 'tif', 'tiff'].includes(ext)) {
-      setError(`Formato no soportado: .${ext} — Usa .npy o .tif`)
+    if (!['npy', 'tif', 'tiff', 'jpg', 'jpeg', 'png'].includes(ext)) {
+      setError(`Formato no soportado: .${ext}`)
       return
     }
     setFile(f)
     setResult(null)
     setError(null)
+    // Preview local solo para imágenes RGB
+    if (['jpg', 'jpeg', 'png'].includes(ext)) {
+      setPreview(URL.createObjectURL(f))
+    } else {
+      setPreview(null)
+    }
   }
 
   const onDrop = useCallback((e) => {
@@ -44,7 +60,7 @@ export default function ImageUpload() {
     handleFile(e.dataTransfer.files[0])
   }, [])
 
-  // Dibujar la máscara predicha en el canvas
+  // Dibujar máscara en canvas cuando llega el resultado
   useEffect(() => {
     if (!result?.mask_flat || !canvasRef.current) return
     const size    = result.mask_size
@@ -58,10 +74,10 @@ export default function ImageUpload() {
       imgData.data[i * 4]     = r
       imgData.data[i * 4 + 1] = g
       imgData.data[i * 4 + 2] = b
-      imgData.data[i * 4 + 3] = 220
+      imgData.data[i * 4 + 3] = showMask ? Math.round(opacity * 255) : 0
     })
     ctx.putImageData(imgData, 0, 0)
-  }, [result])
+  }, [result, opacity, showMask])
 
   const classify = async () => {
     if (!file || loading) return
@@ -82,12 +98,21 @@ export default function ImageUpload() {
     }
   }
 
-  const reset = () => { setFile(null); setResult(null); setError(null); setLoading(false) }
+  const reset = () => {
+    setFile(null); setPreview(null); setResult(null)
+    setError(null); setLoading(false)
+  }
+
+  // Imagen original a mostrar: base64 del backend o preview local
+  const originalSrc = result?.original_base64
+    ? `data:image/png;base64,${result.original_base64}`
+    : preview
 
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
-      padding: 20, gap: 14, overflowY: 'auto', maxWidth: 700, margin: '0 auto', width: '100%',
+      padding: 20, gap: 14, overflowY: 'auto',
+      maxWidth: 720, margin: '0 auto', width: '100%',
     }}>
 
       {/* Título */}
@@ -95,20 +120,28 @@ export default function ImageUpload() {
         fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 2,
         color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6,
       }}>
-        <FileCode size={10} color="var(--accent)" />
-        CLASIFICAR IMAGEN SENTINEL-2 — 6 BANDAS
+        <Layers size={10} color="var(--accent)" />
+        CLASIFICAR IMAGEN — SEGMENTACIÓN LULC
       </div>
 
-      {/* Info */}
+      {/* Formatos aceptados */}
       <div style={{
-        fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)',
-        lineHeight: 1.8, background: 'var(--bg-card)',
-        border: '1px solid var(--border)', borderRadius: 6, padding: '10px 14px',
+        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8,
       }}>
-        Sube un archivo <span style={{ color: 'var(--accent)' }}>.npy</span> o{' '}
-        <span style={{ color: 'var(--accent)' }}>.tif</span> con 6 bandas Sentinel-2.<br />
-        Shape esperado: <span style={{ color: 'var(--green)' }}>(6, H, W)</span> o{' '}
-        <span style={{ color: 'var(--green)' }}>(H, W, 6)</span> — se redimensiona a 256×256 automáticamente.
+        {FORMATS.map((f, i) => (
+          <div key={i} style={{
+            background: 'var(--bg-card)', border: '1px solid var(--border)',
+            borderRadius: 6, padding: '8px 10px',
+          }}>
+            <div style={{ fontSize: 16, marginBottom: 4 }}>{f.icon}</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--accent)', marginBottom: 3 }}>
+              {f.ext}
+            </div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+              {f.desc}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Drop zone */}
@@ -126,7 +159,8 @@ export default function ImageUpload() {
           }}
         >
           <input
-            ref={inputRef} type="file" accept=".npy,.tif,.tiff"
+            ref={inputRef} type="file"
+            accept=".npy,.tif,.tiff,.jpg,.jpeg,.png"
             style={{ display: 'none' }}
             onChange={e => handleFile(e.target.files[0])}
           />
@@ -138,14 +172,13 @@ export default function ImageUpload() {
             fontFamily: 'var(--font-mono)', fontSize: 12,
             color: dragging ? 'var(--accent)' : 'var(--text-secondary)',
           }}>
-            {dragging ? 'Suelta aquí' : 'Arrastra tu archivo o haz click para seleccionar'}
+            {dragging ? 'Suelta aquí' : 'Arrastra tu imagen o haz click'}
           </div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-muted)', marginTop: 8 }}>
-            Formatos aceptados: .npy · .tif · .tiff
+            .jpg · .png · .npy · .tif · .tiff
           </div>
         </div>
       ) : (
-        /* Archivo cargado */
         <div style={{
           background: 'var(--bg-card)', border: '1px solid var(--border-bright)',
           borderRadius: 8, padding: '12px 16px',
@@ -168,6 +201,22 @@ export default function ImageUpload() {
         </div>
       )}
 
+      {/* Preview local antes de clasificar */}
+      {preview && !result && (
+        <div>
+          <div style={{
+            fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 2,
+            color: 'var(--text-muted)', marginBottom: 8,
+          }}>
+            VISTA PREVIA
+          </div>
+          <img src={preview} alt="preview" style={{
+            width: '100%', borderRadius: 8,
+            border: '1px solid var(--border)', display: 'block',
+          }} />
+        </div>
+      )}
+
       {/* Error */}
       {error && (
         <div style={{
@@ -179,7 +228,7 @@ export default function ImageUpload() {
         </div>
       )}
 
-      {/* Botón */}
+      {/* Botón clasificar */}
       {file && !result && (
         <button onClick={classify} disabled={loading} style={{
           width: '100%', padding: '12px', borderRadius: 8,
@@ -196,42 +245,93 @@ export default function ImageUpload() {
         </button>
       )}
 
-      {/* Loading */}
       {loading && (
         <div style={{
           textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 11,
-          color: 'var(--text-muted)', padding: '12px 0',
-          animation: 'pulse 1s infinite',
+          color: 'var(--text-muted)', animation: 'pulse 1s infinite',
         }}>
           🛰️ &nbsp; Ejecutando inferencia con el modelo U-Net...
         </div>
       )}
 
-      {/* Resultados */}
+      {/* ── RESULTADO: imagen original + máscara overlay ── */}
       {result && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }} className="fade-in">
 
-          {/* Máscara */}
+          {/* Controles de overlay */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            background: 'var(--bg-card)', border: '1px solid var(--border)',
+            borderRadius: 8, padding: '10px 14px',
+          }}>
+            <button onClick={() => setShowMask(v => !v)} style={{
+              background: showMask ? 'var(--accent-glow)' : 'transparent',
+              border: `1px solid ${showMask ? 'var(--accent)' : 'var(--border)'}`,
+              borderRadius: 6, padding: '4px 12px', cursor: 'pointer',
+              fontFamily: 'var(--font-mono)', fontSize: 9,
+              color: showMask ? 'var(--accent)' : 'var(--text-muted)',
+              transition: 'all 0.2s',
+            }}>
+              {showMask ? '🎨 MÁSCARA ON' : '🎨 MÁSCARA OFF'}
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                OPACIDAD
+              </span>
+              <input
+                type="range" min="0.1" max="1" step="0.05"
+                value={opacity}
+                onChange={e => setOpacity(parseFloat(e.target.value))}
+                disabled={!showMask}
+                style={{ flex: 1, accentColor: 'var(--accent)' }}
+              />
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--accent)', width: 32 }}>
+                {Math.round(opacity * 100)}%
+              </span>
+            </div>
+          </div>
+
+          {/* Imagen original + canvas overlay superpuesto */}
           <div>
             <div style={{
               fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 2,
               color: 'var(--text-muted)', marginBottom: 8,
             }}>
-              MÁSCARA PREDICHA — {result.mask_size}×{result.mask_size}px
+              SEGMENTACIÓN LULC — {result.mask_size}×{result.mask_size}px
             </div>
-            <canvas
-              ref={canvasRef}
-              style={{
-                width: '100%', height: 'auto', display: 'block',
-                borderRadius: 8, border: '1px solid var(--border)',
-                imageRendering: 'pixelated',
-              }}
-            />
+
+            <div style={{ position: 'relative', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)' }}>
+              {/* Imagen original */}
+              {originalSrc ? (
+                <img
+                  ref={imgRef}
+                  src={originalSrc}
+                  alt="original"
+                  style={{ width: '100%', display: 'block' }}
+                />
+              ) : (
+                /* Si no hay imagen (npy sin preview) mostrar fondo oscuro */
+                <div style={{ width: '100%', paddingTop: '100%', background: 'var(--bg-deep)' }} />
+              )}
+
+              {/* Máscara superpuesta */}
+              <canvas
+                ref={canvasRef}
+                style={{
+                  position: 'absolute', inset: 0,
+                  width: '100%', height: '100%',
+                  imageRendering: 'pixelated',
+                  mixBlendMode: 'multiply',
+                }}
+              />
+            </div>
+
             {/* Leyenda */}
-            <div style={{ display: 'flex', gap: 12, marginTop: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
               {CLASS_LABELS.map((cls, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: 2, background: cls.color }} />
+                  <div style={{ width: 10, height: 10, borderRadius: 2, background: cls.color, flexShrink: 0 }} />
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-muted)' }}>
                     {cls.name}
                   </span>
@@ -240,7 +340,7 @@ export default function ImageUpload() {
             </div>
           </div>
 
-          {/* Distribución */}
+          {/* Distribución LULC */}
           <div>
             <div style={{
               fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 2,
@@ -250,8 +350,7 @@ export default function ImageUpload() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {CLASS_LABELS.map((cls, i) => {
-                const stats = result.distribucion?.[cls.name]
-                const pct   = stats?.porcentaje || 0
+                const pct = result.distribucion?.[cls.name]?.porcentaje || 0
                 return (
                   <div key={i}>
                     <div style={{
@@ -287,7 +386,10 @@ export default function ImageUpload() {
             borderRadius: 6, padding: '10px 14px', lineHeight: 2,
           }}>
             <div>Archivo: <span style={{ color: 'var(--accent)' }}>{result.filename}</span></div>
-            <div>Shape original: <span style={{ color: 'var(--green)' }}>{result.shape_original?.join(' × ')}</span></div>
+            <div>Shape: <span style={{ color: 'var(--green)' }}>{result.shape_original?.join(' × ')}</span></div>
+            {result.original_size && (
+              <div>Resolución original: <span style={{ color: 'var(--green)' }}>{result.original_size[0]} × {result.original_size[1]} px</span></div>
+            )}
           </div>
 
           {/* Nueva imagen */}

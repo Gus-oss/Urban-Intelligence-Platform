@@ -275,79 +275,128 @@ async def upload_classify(file: UploadFile = File(...)):
     Clasifica una imagen subida por el usuario usando el modelo U-Net.
 
     Formatos aceptados:
-    - .npy  : array numpy de shape (6, H, W) o (H, W, 6), dtype float32
-    - .tif  : imagen GeoTIFF Sentinel-2 con 6 bandas (requiere rasterio)
+    - .npy        : array numpy (6, H, W) o (H, W, 6), dtype float32
+    - .tif/.tiff  : GeoTIFF Sentinel-2 con 6 bandas (requiere rasterio)
+    - .jpg/.jpeg/.png : imagen RGB — se convierte a 6 bandas automáticamente
 
     Devuelve:
-    - distribucion: porcentaje de cada clase LULC
-    - mask_flat: máscara predicha como lista plana (para renderizar en canvas)
-    - mask_size: tamaño del lado de la máscara (siempre 256)
+    - distribucion    : porcentaje de cada clase LULC
+    - mask_flat       : máscara predicha como lista plana
+    - mask_size       : tamaño del lado de la máscara (256)
+    - original_base64 : imagen original en base64 para visualización
+    - original_size   : [width, height] de la imagen original
     """
     if inference_service is None:
         raise HTTPException(status_code=503, detail="El modelo no está cargado.")
 
     ext = Path(file.filename).suffix.lower()
-    if ext not in [".npy", ".tif", ".tiff"]:
+    ALLOWED = [".npy", ".tif", ".tiff", ".jpg", ".jpeg", ".png"]
+    if ext not in ALLOWED:
         raise HTTPException(
             status_code=400,
-            detail=f"Formato no soportado: {ext}. Usa .npy o .tif"
+            detail=f"Formato no soportado: {ext}. Usa: {', '.join(ALLOWED)}"
         )
 
-    # Guardar archivo temporalmente
     with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
         shutil.copyfileobj(file.file, tmp)
         tmp_path = tmp.name
 
     try:
-        # Cargar la imagen según el formato
+        from PIL import Image as PILImage
+        import base64, io, torch
+        import torch.nn.functional as F
+
+        original_base64 = None
+        original_size   = None
+
+        # ── Cargar imagen según formato ──────────────────────────────
         if ext == ".npy":
             image = np.load(tmp_path).astype(np.float32)
-        else:
-            # .tif requiere rasterio
+            # Generar preview RGB desde bandas 0,1,2
+            if image.ndim == 3:
+                rgb_bands = image[:3] if image.shape[0] >= 3 else image
+                rgb = rgb_bands.transpose(1, 2, 0) if rgb_bands.shape[0] == 3 else rgb_bands
+                rgb_norm = ((rgb - rgb.min()) / (rgb.max() - rgb.min() + 1e-8) * 255).astype(np.uint8)
+                pil_img = PILImage.fromarray(rgb_norm if rgb_norm.ndim == 3 else np.stack([rgb_norm]*3, axis=-1))
+                buf = io.BytesIO()
+                pil_img.save(buf, format='PNG')
+                original_base64 = base64.b64encode(buf.getvalue()).decode()
+                original_size   = [pil_img.width, pil_img.height]
+
+        elif ext in [".tif", ".tiff"]:
             try:
                 import rasterio
                 with rasterio.open(tmp_path) as src:
-                    image = src.read().astype(np.float32)  # shape: (bands, H, W)
+                    image = src.read().astype(np.float32)
+                # Preview RGB desde bandas 0,1,2
+                rgb = image[:3].transpose(1, 2, 0)
+                rgb_norm = ((rgb - rgb.min()) / (rgb.max() - rgb.min() + 1e-8) * 255).astype(np.uint8)
+                pil_img = PILImage.fromarray(rgb_norm)
+                buf = io.BytesIO()
+                pil_img.save(buf, format='PNG')
+                original_base64 = base64.b64encode(buf.getvalue()).decode()
+                original_size   = [pil_img.width, pil_img.height]
             except ImportError:
                 raise HTTPException(
                     status_code=422,
-                    detail="Para archivos .tif instala rasterio: pip install rasterio"
+                    detail="Para .tif instala rasterio: pip install rasterio"
                 )
 
-        # Normalizar shape a (6, H, W)
-        if image.ndim == 3 and image.shape[2] == 6:
-            image = image.transpose(2, 0, 1)  # (H, W, 6) → (6, H, W)
+        else:
+            # JPG / PNG — convertir RGB a 6 bandas sintéticas
+            pil_img = PILImage.open(tmp_path).convert('RGB')
+            original_size = [pil_img.width, pil_img.height]
 
-        # Validar shape
+            # Guardar original como base64
+            buf = io.BytesIO()
+            pil_img.save(buf, format='PNG')
+            original_base64 = base64.b64encode(buf.getvalue()).decode()
+
+            # Convertir a array float normalizado
+            rgb = np.array(pil_img).astype(np.float32) / 255.0  # (H, W, 3)
+            R, G, B = rgb[:,:,0], rgb[:,:,1], rgb[:,:,2]
+
+            # Aproximar 6 bandas Sentinel-2 desde RGB:
+            # B2(Blue), B3(Green), B4(Red), B8(NIR), B11(SWIR1), B12(SWIR2)
+            band2  = B                              # Blue
+            band3  = G                              # Green
+            band4  = R                              # Red
+            band8  = (0.7*G + 0.3*R)               # NIR ≈ combinación verde-rojo
+            band11 = (0.6*R + 0.4*B)               # SWIR1 ≈ rojo con algo de azul
+            band12 = (0.5*R + 0.3*G + 0.2*B)       # SWIR2 ≈ mezcla ponderada
+
+            image = np.stack([band2, band3, band4, band8, band11, band12], axis=0)  # (6, H, W)
+
+        # ── Normalizar shape a (6, H, W) ────────────────────────────
+        if image.ndim == 3 and image.shape[2] == 6:
+            image = image.transpose(2, 0, 1)
+
         if image.ndim != 3 or image.shape[0] != 6:
             raise HTTPException(
                 status_code=422,
-                detail=f"Se esperan 6 bandas. Shape recibido: {image.shape}. "
-                       f"Asegúrate de que el array tenga shape (6, H, W) o (H, W, 6)."
+                detail=f"Se esperan 6 bandas. Shape recibido: {image.shape}"
             )
 
-        # Resize a 256x256 si es necesario
-        import torch
-        import torch.nn.functional as F
+        # ── Inferencia ───────────────────────────────────────────────
         tensor = torch.from_numpy(image).unsqueeze(0)  # (1, 6, H, W)
         if tensor.shape[2] != 256 or tensor.shape[3] != 256:
             tensor = F.interpolate(tensor, size=(256, 256), mode='bilinear', align_corners=False)
 
-        # Inferencia
         tensor = tensor.to(inference_service.device)
         with torch.no_grad():
             output = inference_service.model(tensor)
-            mask = output.argmax(dim=1).squeeze(0).cpu().numpy()  # (256, 256)
+            mask   = output.argmax(dim=1).squeeze(0).cpu().numpy()  # (256, 256)
 
-        # Calcular distribución
         stats = inference_service._compute_stats(mask)
 
         return {
-            "filename": file.filename,
+            "filename":       file.filename,
             "shape_original": list(image.shape),
-            "mask_size": 256,
-            "mask_flat": mask.flatten().tolist(),  # lista plana para canvas del frontend
-            "distribucion": stats,
+            "mask_size":      256,
+            "mask_flat":      mask.flatten().tolist(),
+            "distribucion":   stats,
+            "original_base64": original_base64,
+            "original_size":   original_size,
         }
 
     finally:
