@@ -10,17 +10,22 @@ Se utilizo Anthropic API para realizar las consultas. FastApi (/chat, /predict, 
 ## Estructura 
 ```bash
 Urban-Intelligence-Platform/
-├── problemas_autentication_test.py                  Verificar problemas de autenticación
+├── problemas_autentication_test.py                 Verificar problemas de autenticación
 ├── .env
 ├── .gitignore
 ├── readme.md
 ├── requirements.txt 
 ├── notebooks/
 ├── experiments/  
+├── Dockerfile.backend                              Backend para la phase5 
+├── Dockerfile.frontend                             Frontend par ala phase5
+├── nginx.conf                                      Para la phase5
+├── cloudbuild.yaml                                 Para la phase5 con GCP
+├── deploy.sh                                       Para la phase5 con GCP
 ├── data/
 │    ├── chroma_db/ 
-│    ├── processed/                                  Carpeta de datos procesados
-│    └── raw/                                        Carpeta de datos sin procesar 
+│    ├── processed/                                 Carpeta de datos procesados
+│    └── raw/                                       Carpeta de datos sin procesar 
 ├──  models/
 │    ├── best_model.pth                             Mejor modelo obtenido
 │    └── results_test_results.json                  Evaluacion del modelo 
