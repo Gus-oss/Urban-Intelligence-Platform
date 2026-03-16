@@ -138,6 +138,29 @@ export default function App() {
           </div>
         ))}
 
+        <div style={{ width: 1, height: 28, background: 'var(--border)' }} />
+
+        {/* ── Nav tabs ── */}
+        <div style={{ display: 'flex', gap: 2 }}>
+          {TABS.map(tab => (
+            <button key={tab.id} onClick={() => setActivePanel(tab.id)} style={{
+              background: 'transparent',
+              border: 'none',
+              borderBottom: `2px solid ${activePanel === tab.id ? 'var(--accent)' : 'transparent'}`,
+              padding: '0 14px', height: 48, cursor: 'pointer',
+              fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1,
+              color: activePanel === tab.id ? 'var(--accent)' : 'var(--text-muted)',
+              fontWeight: activePanel === tab.id ? 700 : 400,
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { if (activePanel !== tab.id) e.currentTarget.style.color = 'var(--text-secondary)' }}
+            onMouseLeave={e => { if (activePanel !== tab.id) e.currentTarget.style.color = 'var(--text-muted)' }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         <div style={{ flex: 1 }} />
 
         {/* Métricas + reloj */}
@@ -200,27 +223,6 @@ export default function App() {
 
       {/* ═══════════════════════════════ MAIN (tabs) ═══════════════════════════ */}
       <main style={{ gridArea: 'main', position: 'relative', overflow: 'hidden' }}>
-
-        {/* Tab bar */}
-        <div style={{
-          position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 1000, display: 'flex', gap: 4,
-          background: 'rgba(10,21,32,0.92)', border: '1px solid var(--border)',
-          borderRadius: 8, padding: 3, backdropFilter: 'blur(8px)',
-        }}>
-          {TABS.map(tab => (
-            <button key={tab.id} onClick={() => setActivePanel(tab.id)} style={{
-              background: activePanel === tab.id ? 'var(--accent)' : 'transparent',
-              border: 'none', borderRadius: 6, padding: '5px 16px', cursor: 'pointer',
-              fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1,
-              color: activePanel === tab.id ? 'var(--bg-deep)' : 'var(--text-muted)',
-              fontWeight: activePanel === tab.id ? 700 : 400,
-              transition: 'all 0.2s',
-            }}>
-              {tab.label}
-            </button>
-          ))}
-        </div>
 
         {/* Panel: MAPA */}
         <div style={{
