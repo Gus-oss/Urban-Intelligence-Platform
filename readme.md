@@ -46,14 +46,15 @@ Urban-Intelligence-Platform/
     │    ├── rag.py
     │    └── tools.py
     └── phase4                                      Fase de Frontend
-         ├── package.json                            
-         ├── vite.config.js
-         ├── index.html
-         ├── main.jsx
-         ├── App.jsx 
-         └── components/
-               ├── Map.jsx
-               ├── Chat.jsx
-               ├── Rankings.jsx
-               └── LULCChart.jsx
+    │    ├── package.json                            
+    │    ├── vite.config.js
+    │    ├── index.html
+    │    ├── main.jsx
+    │    ├── App.jsx 
+    │    └── components/
+    │          ├── Map.jsx
+    │          ├── Chat.jsx
+    │          ├── Rankings.jsx
+    │           └── LULCChart.jsx
+    └── phase5
 ```
