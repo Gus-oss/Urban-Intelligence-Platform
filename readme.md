@@ -50,7 +50,7 @@ Urban-Intelligence-Platform/
     │    ├── inference.py
     │    ├── rag.py
     │    └── tools.py
-    └── phase4                                      Fase de Frontend
+    ├── phase4                                      Fase de Frontend
     │    ├── package.json                            
     │    ├── vite.config.js
     │    ├── index.html
