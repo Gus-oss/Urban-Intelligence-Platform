@@ -1,22 +1,27 @@
 :root {
-  --bg-deep:        #050a0f;
-  --bg-panel:       #0a1520;
-  --bg-card:        #0f1e2e;
-  --bg-hover:       #162535;
-  --border:         #1a3040;
-  --border-bright:  #1e4060;
+  --bg-deep:        #04080d;
+  --bg-panel:       #080f18;
+  --bg-card:        #0c1825;
+  --bg-hover:       #121f30;
+  --border:         #152232;
+  --border-bright:  #1a3048;
   --accent:         #00d4ff;
   --accent-dim:     #0099bb;
   --accent-glow:    rgba(0, 212, 255, 0.12);
+  --accent-glow2:   rgba(0, 212, 255, 0.06);
   --green:          #00ff88;
   --green-dim:      #00aa55;
   --amber:          #ffaa00;
   --red:            #ff4444;
-  --text-primary:   #e8f4f8;
-  --text-secondary: #7aa8c0;
-  --text-muted:     #3a6070;
+  --text-primary:   #e4f0f8;
+  --text-secondary: #6a98b8;
+  --text-muted:     #2d5068;
   --font-display:   'Syne', sans-serif;
   --font-mono:      'Space Mono', monospace;
+
+  /* Card shadows */
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px var(--border);
+  --shadow-glow: 0 0 24px rgba(0,212,255,0.15);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,37 +36,70 @@ body {
 
 #root { height: 100vh; }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
 
-/* Leaflet overrides */
-.leaflet-container { background: #050a0f !important; font-family: var(--font-mono) !important; }
-.leaflet-tile { filter: saturate(0.3) brightness(0.6) hue-rotate(180deg) !important; }
-.leaflet-control-zoom a {
+/* Mapbox */
+.leaflet-container { background: #04080d !important; }
+.mapboxgl-ctrl-group {
   background: var(--bg-card) !important;
-  color: var(--accent) !important;
-  border-color: var(--border) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-card) !important;
 }
-.leaflet-control-attribution {
-  background: rgba(5,10,15,0.8) !important;
+.mapboxgl-ctrl-group button {
+  background: transparent !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+.mapboxgl-ctrl-group button:last-child { border-bottom: none !important; }
+.mapboxgl-ctrl-icon { filter: invert(0.7) sepia(1) saturate(2) hue-rotate(180deg) !important; }
+.mapboxgl-ctrl-attrib {
+  background: rgba(4,8,13,0.8) !important;
   color: var(--text-muted) !important;
   font-size: 9px !important;
 }
+.mapboxgl-popup-content {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+.mapboxgl-popup-tip { display: none !important; }
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.4; }
 }
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes ripple {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0,212,255,0.4); }
+  50%       { box-shadow: 0 0 20px rgba(0,212,255,0.8); }
 }
 
-.fade-in { animation: fadeIn 0.3s ease forwards; }
+.fade-in       { animation: fadeIn 0.3s ease forwards; }
+.fade-in-scale { animation: fadeInScale 0.3s ease forwards; }
+.slide-down    { animation: slideDown 0.25s ease forwards; }
+.slide-up      { animation: slideUp 0.25s ease forwards; }
