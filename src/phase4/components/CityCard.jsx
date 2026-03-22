@@ -31,7 +31,7 @@ Si no tienes datos exactos usa estimaciones. Responde SOLO el JSON, nada más.`,
   } catch { return null }
 }
 
-export default function CityCard({ data, label, onClose, onCompare, showCompare }) {
+export default function CityCard({ data, label, onClose, onCompare, showCompare, onFlyTo }) {
   const [collapsed,  setCollapsed]  = useState(false)
   const [cityInfo,   setCityInfo]   = useState(null)
   const [loadingInfo,setLoadingInfo]= useState(false)
@@ -66,12 +66,20 @@ export default function CityCard({ data, label, onClose, onCompare, showCompare 
       overflow: 'hidden',
     }}>
       {/* Header */}
-      <div style={{
-        padding: '10px 12px',
-        background: `linear-gradient(135deg, ${label==='A' ? 'rgba(0,212,255,0.07)' : 'rgba(255,170,0,0.07)'}, transparent)`,
-        borderBottom: collapsed ? 'none' : '1px solid rgba(255,255,255,0.05)',
-        display: 'flex', alignItems: 'center', gap: 8,
-      }}>
+      <div
+        style={{
+          padding: '10px 12px',
+          background: `linear-gradient(135deg, ${label==='A' ? 'rgba(0,212,255,0.07)' : 'rgba(255,170,0,0.07)'}, transparent)`,
+          borderBottom: collapsed ? 'none' : '1px solid rgba(255,255,255,0.05)',
+          display: 'flex', alignItems: 'center', gap: 8,
+          cursor: 'pointer',
+        }}
+        onClick={(e) => {
+          // Si el click fue en los botones de colapsar/cerrar, no volar
+          if (e.target.closest('button')) return
+          if (onFlyTo) onFlyTo()
+        }}
+      >
         <div style={{
           width: 24, height: 24, borderRadius: 7, background: badge, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -81,12 +89,12 @@ export default function CityCard({ data, label, onClose, onCompare, showCompare 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
             fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12,
-            color: 'var(--text-primary)',
+            color: accent,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>{name}</div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--text-muted)', marginTop: 1 }}>
-            {data.lat?.toFixed(4)}, {data.lng?.toFixed(4)}
-            {data.size_km ? ` · ${data.size_km}×${data.size_km} km` : ''}
+            ↗ ir a ubicación &nbsp;·&nbsp; {data.lat?.toFixed(4)}, {data.lng?.toFixed(4)}
+            {data.size_km ? ` · ${data.size_km}km` : ''}
           </div>
         </div>
 
@@ -194,7 +202,7 @@ export default function CityCard({ data, label, onClose, onCompare, showCompare 
             <div style={{
               fontFamily:'var(--font-mono)', fontSize:8, letterSpacing:2,
               color:'var(--text-muted)', marginBottom:8,
-            }}>DISTRIBUCIÓN LULC</div>
+            }}>DISTRIBUCIÓN</div>
 
             <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
               {CLASS_LABELS.map((cls, i) => {
