@@ -62,9 +62,6 @@ Urban-Intelligence-Platform/
     │          ├── CityCard.jsx
     │          ├── SearchPanel.jsx 
     │          └── UploadModal.jsx
-    │          ├── Chat.jsx
-    │          ├── Rankings.jsx
-    │          └── LULCChart.jsx
     └── phase5
          ├── __init__.py
          ├── api.py
