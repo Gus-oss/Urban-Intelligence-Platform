@@ -73,7 +73,7 @@ export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget, o
   const geoCache      = useRef({})
   const [loadingPoly, setLoadingPoly] = useState(null)
 
-  // Fly to arbitrary coordinates (from location search results)
+  // Fly to arbitrary coordinates (from location search results or card click)
   useEffect(() => {
     if (!mapTarget || !map.current) return
     const fly = () => map.current.flyTo({
@@ -81,7 +81,7 @@ export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget, o
     })
     if (map.current.isStyleLoaded()) fly()
     else map.current.once('style.load', fly)
-  }, [mapTarget])
+  }, [mapTarget?.lat, mapTarget?.lng, mapTarget?.ts])
 
   // Genera PNG de la máscara LULC en un canvas offscreen
   const buildMaskPng = (maskFlat, maskSize) => {
@@ -125,6 +125,9 @@ export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget, o
     }
   }
 
+  const prevOverlayA = useRef(null)
+  const prevOverlayB = useRef(null)
+
   const removeOverlay = (id) => {
     if (!map.current?.isStyleLoaded()) return
     const layerId  = `lulc-layer-${id}`
@@ -135,6 +138,11 @@ export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget, o
 
   useEffect(() => {
     if (!map.current) return
+    // Solo aplicar si cambió realmente (comparar por referencia de mask_flat)
+    const prev = prevOverlayA.current
+    const same = prev && overlayA && prev.mask_flat === overlayA.mask_flat
+    if (same) return
+    prevOverlayA.current = overlayA || null
     const apply = () => overlayA ? applyLulcOverlay('a', overlayA) : removeOverlay('a')
     if (map.current.isStyleLoaded()) apply()
     else map.current.once('style.load', apply)
@@ -142,6 +150,10 @@ export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget, o
 
   useEffect(() => {
     if (!map.current) return
+    const prev = prevOverlayB.current
+    const same = prev && overlayB && prev.mask_flat === overlayB.mask_flat
+    if (same) return
+    prevOverlayB.current = overlayB || null
     const apply = () => overlayB ? applyLulcOverlay('b', overlayB) : removeOverlay('b')
     if (map.current.isStyleLoaded()) apply()
     else map.current.once('style.load', apply)
