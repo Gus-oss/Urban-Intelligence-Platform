@@ -68,17 +68,13 @@ export default function SearchPanel({ onResult, onClose, isCompare = false }) {
 
   return (
     <div className="slide-down" style={{
-      position: 'absolute', top: '100%', left: '50%',
-      transform: 'translateX(-50%)',
-      marginTop: 8,
       width: 520,
       background: 'rgba(8,15,24,0.98)',
       border: '1px solid var(--border-bright)',
       borderRadius: 14,
       boxShadow: '0 24px 64px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,212,255,0.08)',
       backdropFilter: 'blur(16px)',
-      overflow: 'hidden',
-      zIndex: 3000,
+      overflow: 'visible',
     }}>
       {/* Header del panel */}
       <div style={{
