@@ -66,7 +66,7 @@ async function loadCityGeoJSON(cityKey) {
   }
 }
 
-export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget }) {
+export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget, overlayA, overlayB }) {
   const mapContainer  = useRef(null)
   const map           = useRef(null)
   const prevCity      = useRef(null)
@@ -77,11 +77,54 @@ export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget })
   useEffect(() => {
     if (!mapTarget || !map.current) return
     const fly = () => map.current.flyTo({
-      center: [mapTarget.lng, mapTarget.lat], zoom: 9, duration: 1800,
+      center: [mapTarget.lng, mapTarget.lat], zoom: 10, duration: 1800,
     })
     if (map.current.isStyleLoaded()) fly()
     else map.current.once('style.load', fly)
   }, [mapTarget])
+
+  // Show Sentinel-2 image overlay on map
+  const applyOverlay = (id, overlay) => {
+    if (!map.current?.isStyleLoaded()) return
+    const sourceId = `overlay-${id}`
+    const layerId  = `overlay-layer-${id}`
+
+    // Remove existing
+    if (map.current.getLayer(layerId))  map.current.removeLayer(layerId)
+    if (map.current.getSource(sourceId)) map.current.removeSource(sourceId)
+
+    if (!overlay) return
+
+    const [minX, minY, maxX, maxY] = overlay.bbox
+    map.current.addSource(sourceId, {
+      type: 'image',
+      url: `data:image/png;base64,${overlay.image_base64}`,
+      coordinates: [
+        [minX, maxY], // top-left
+        [maxX, maxY], // top-right
+        [maxX, minY], // bottom-right
+        [minX, minY], // bottom-left
+      ],
+    })
+    map.current.addLayer({
+      id: layerId, type: 'raster', source: sourceId,
+      paint: { 'raster-opacity': 0.75 },
+    })
+  }
+
+  useEffect(() => {
+    if (!map.current) return
+    const apply = () => applyOverlay('a', overlayA)
+    if (map.current.isStyleLoaded()) apply()
+    else map.current.once('style.load', apply)
+  }, [overlayA])
+
+  useEffect(() => {
+    if (!map.current) return
+    const apply = () => applyOverlay('b', overlayB)
+    if (map.current.isStyleLoaded()) apply()
+    else map.current.once('style.load', apply)
+  }, [overlayB])
 
   useEffect(() => {
     if (map.current) return
