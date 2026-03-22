@@ -204,8 +204,16 @@ export default function App() {
           onCitySelect={() => {}}
           lulcData={locationA}
           mapTarget={mapTarget}
-          overlayA={locationA ? { bbox: locationA.bbox, image_base64: locationA.original_base64 } : null}
-          overlayB={locationB ? { bbox: locationB.bbox, image_base64: locationB.original_base64 } : null}
+          overlayA={locationA?.bbox ? {
+            bbox: locationA.bbox,
+            mask_flat: locationA.mask_flat,
+            mask_size: locationA.mask_size,
+          } : null}
+          overlayB={locationB?.bbox ? {
+            bbox: locationB.bbox,
+            mask_flat: locationB.mask_flat,
+            mask_size: locationB.mask_size,
+          } : null}
         />
 
         {/* ── Cards flotantes (bottom left) ── */}
