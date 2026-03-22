@@ -83,45 +83,66 @@ export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget, o
     else map.current.once('style.load', fly)
   }, [mapTarget])
 
-  // Show Sentinel-2 image overlay on map
-  const applyOverlay = (id, overlay) => {
-    if (!map.current?.isStyleLoaded()) return
-    const sourceId = `overlay-${id}`
-    const layerId  = `overlay-layer-${id}`
+  // Genera PNG de la máscara LULC en un canvas offscreen
+  const buildMaskPng = (maskFlat, maskSize) => {
+    const CLASS_RGB = [[255,107,107],[81,207,102],[51,154,240],[255,212,59]]
+    const canvas    = document.createElement('canvas')
+    canvas.width    = maskSize
+    canvas.height   = maskSize
+    const ctx       = canvas.getContext('2d')
+    const img       = ctx.createImageData(maskSize, maskSize)
+    maskFlat.forEach((cls, i) => {
+      const [r, g, b] = CLASS_RGB[cls] || [128,128,128]
+      img.data[i*4]   = r; img.data[i*4+1] = g
+      img.data[i*4+2] = b; img.data[i*4+3] = 200  // semitransparente
+    })
+    ctx.putImageData(img, 0, 0)
+    return canvas.toDataURL('image/png')
+  }
 
-    // Remove existing
-    if (map.current.getLayer(layerId))  map.current.removeLayer(layerId)
-    if (map.current.getSource(sourceId)) map.current.removeSource(sourceId)
+  // Aplica la máscara LULC sobre el mapa en las coordenadas exactas del bbox
+  const applyLulcOverlay = (id, overlay) => {
+    if (!map.current?.isStyleLoaded() || !overlay) return
+    const sourceId = `lulc-${id}`
+    const layerId  = `lulc-layer-${id}`
 
-    if (!overlay) return
-
+    const pngUrl = buildMaskPng(overlay.mask_flat, overlay.mask_size || 256)
     const [minX, minY, maxX, maxY] = overlay.bbox
-    map.current.addSource(sourceId, {
-      type: 'image',
-      url: `data:image/png;base64,${overlay.image_base64}`,
-      coordinates: [
-        [minX, maxY], // top-left
-        [maxX, maxY], // top-right
-        [maxX, minY], // bottom-right
-        [minX, minY], // bottom-left
-      ],
-    })
-    map.current.addLayer({
-      id: layerId, type: 'raster', source: sourceId,
-      paint: { 'raster-opacity': 0.75 },
-    })
+
+    const coords = [
+      [minX, maxY], [maxX, maxY], [maxX, minY], [minX, minY],
+    ]
+
+    if (map.current.getSource(sourceId)) {
+      // Actualizar sin parpadeo
+      map.current.getSource(sourceId).updateImage({ url: pngUrl, coordinates: coords })
+    } else {
+      map.current.addSource(sourceId, { type: 'image', url: pngUrl, coordinates: coords })
+      map.current.addLayer({
+        id: layerId, type: 'raster', source: sourceId,
+        paint: { 'raster-opacity': 0.65 },
+      })
+    }
+  }
+
+  const removeOverlay = (id) => {
+    if (!map.current?.isStyleLoaded()) return
+    const layerId  = `lulc-layer-${id}`
+    const sourceId = `lulc-${id}`
+    if (map.current.getLayer(layerId))   map.current.removeLayer(layerId)
+    if (map.current.getSource(sourceId)) map.current.removeSource(sourceId)
   }
 
   useEffect(() => {
     if (!map.current) return
-    const apply = () => applyOverlay('a', overlayA)
+    const apply = () => overlayA ? applyLulcOverlay('a', overlayA) : removeOverlay('a')
     if (map.current.isStyleLoaded()) apply()
     else map.current.once('style.load', apply)
   }, [overlayA])
 
   useEffect(() => {
     if (!map.current) return
-    const apply = () => applyOverlay('b', overlayB)
+    const apply = () => overlayB ? applyLulcOverlay('b', overlayB) : removeOverlay('b')
     if (map.current.isStyleLoaded()) apply()
     else map.current.once('style.load', apply)
   }, [overlayB])
@@ -131,7 +152,7 @@ export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget, o
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: 'mapbox://styles/mapbox/satellite-streets-v12',  // ← satélite real
       center: [10, 20],
       zoom: 1.8,
       projection: 'globe',
