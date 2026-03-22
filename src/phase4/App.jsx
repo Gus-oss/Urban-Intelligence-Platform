@@ -226,19 +226,19 @@ export default function App() {
             <CityCard
               data={locationA}
               label="A"
-              position="left"
               onClose={() => { setLocationA(null); setLocationB(null) }}
               onCompare={() => { setShowCompare(true); setShowSearch(false) }}
               showCompare={!locationB}
+              onFlyTo={() => setMapTarget({ lat: locationA.lat, lng: locationA.lng, ts: Date.now() })}
             />
           )}
           {locationB && (
             <CityCard
               data={locationB}
               label="B"
-              position="right"
               onClose={() => setLocationB(null)}
               showCompare={false}
+              onFlyTo={() => setMapTarget({ lat: locationB.lat, lng: locationB.lng, ts: Date.now() })}
             />
           )}
         </div>
