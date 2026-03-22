@@ -15,7 +15,7 @@ export default function Chat({ selectedCity, cityName }) {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      text: '👋 Hola. Soy el agente de Urban Intelligence. Puedo clasificar ciudades, comparar distribuciones LULC y responder preguntas sobre urbanismo y teledetección.\n\n¿En qué ciudad te enfocas hoy?',
+      text: '👋 Hola. Soy UrbanAI, el agente de Urban Intelligence Platform. Puedo clasificar ciudades, comparar distribuciones LULC y responder preguntas sobre urbanismo y teledetección.\n\n¿En qué ciudad o ubicación te enfocas hoy?',
     }
   ])
   const [input,   setInput]   = useState('')
@@ -72,7 +72,7 @@ export default function Chat({ selectedCity, cityName }) {
         <Bot size={14} color="var(--accent)" />
         <div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: 1 }}>
-            AGENTE LULC
+            URBANAI
           </div>
           {cityName && (
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-muted)' }}>
