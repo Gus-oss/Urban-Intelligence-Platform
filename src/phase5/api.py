@@ -136,6 +136,7 @@ async def analyze_location(
             "lng":             lng,
             "size_km":         size_km,
             "meta":            meta,
+            "bbox":            meta["bbox"],         # [minX, minY, maxX, maxY] para overlay en mapa
             "distribucion":    stats,
             "mask_flat":       mask.flatten().tolist(),
             "mask_size":       256,
