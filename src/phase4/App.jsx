@@ -174,23 +174,27 @@ export default function App() {
           {time.toUTCString().slice(17, 25)} UTC
         </div>
 
-        {/* Search panel dropdown */}
-        {showSearch && (
+      {/* Search panel — fuera del header para evitar clipping */}
+      {showSearch && (
+        <div style={{ position: 'fixed', top: 58, left: '50%', transform: 'translateX(-50%)', zIndex: 3000 }}>
           <SearchPanel
             onResult={handleResultA}
             onClose={() => setShowSearch(false)}
             isCompare={false}
           />
-        )}
+        </div>
+      )}
 
-        {/* Compare panel dropdown */}
-        {showCompare && (
+      {/* Compare panel — fuera del header */}
+      {showCompare && (
+        <div style={{ position: 'fixed', top: 58, left: '50%', transform: 'translateX(-50%)', zIndex: 3000 }}>
           <SearchPanel
             onResult={handleResultB}
             onClose={() => setShowCompare(false)}
             isCompare={true}
           />
-        )}
+        </div>
+      )}
       </header>
 
       {/* ══════════════════════ MAPA (pantalla completa) ══════════════════════ */}
@@ -200,6 +204,8 @@ export default function App() {
           onCitySelect={() => {}}
           lulcData={locationA}
           mapTarget={mapTarget}
+          overlayA={locationA ? { bbox: locationA.bbox, image_base64: locationA.original_base64 } : null}
+          overlayB={locationB ? { bbox: locationB.bbox, image_base64: locationB.original_base64 } : null}
         />
 
         {/* ── Cards flotantes (bottom left) ── */}
@@ -258,7 +264,6 @@ export default function App() {
         <UploadModal
           onClose={() => setShowUpload(false)}
           onResult={(data) => {
-            setLocationA(data)
             setShowUpload(false)
           }}
         />
