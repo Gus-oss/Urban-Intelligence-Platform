@@ -58,6 +58,10 @@ Urban-Intelligence-Platform/
     │    ├── App.jsx 
     │    └── components/
     │          ├── Map.jsx
+    │          ├── FloatingChat.jsx
+    │          ├── CityCard.jsx
+    │          ├── SearchPanel.jsx 
+    │          └── UploadModal.jsx
     │          ├── Chat.jsx
     │          ├── Rankings.jsx
     │          └── LULCChart.jsx
