@@ -56,13 +56,36 @@ export default function UploadModal({ onClose, onResult }) {
     const formData = new FormData()
     formData.append('file', file)
     try {
-      const res  = await fetch(`${API_BASE}/upload-classify`, { method: 'POST', body: formData })
-      const data = await res.json()
-      if (!res.ok) { setError(data.detail || 'Error'); return }
+      const controller = new AbortController()
+      const timeout    = setTimeout(() => controller.abort(), 120000) // 2 min timeout
+
+      const res = await fetch(`${API_BASE}/upload-classify`, {
+        method: 'POST', body: formData,
+        signal: controller.signal,
+      })
+      clearTimeout(timeout)
+
+      // Leer el texto primero para detectar respuesta vacía
+      const text = await res.text()
+      if (!text || text.trim() === '') {
+        setError('El servidor devolvió una respuesta vacía. Verifica que el backend esté corriendo con src.phase5.api:app')
+        return
+      }
+
+      let data
+      try { data = JSON.parse(text) }
+      catch { setError(`Respuesta inválida del servidor: ${text.slice(0, 100)}`); return }
+
+      if (!res.ok) { setError(data.detail || `Error ${res.status}`); return }
       setResult(data)
       if (onResult) onResult(data)
-    } catch (err) { setError(`Error: ${err.message}`) }
-    finally { setLoading(false) }
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        setError('Tiempo de espera agotado (2 min). La imagen puede ser demasiado grande.')
+      } else {
+        setError(`Error de conexión: ${err.message}`)
+      }
+    } finally { setLoading(false) }
   }
 
   return (
