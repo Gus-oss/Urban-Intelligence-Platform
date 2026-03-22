@@ -258,6 +258,7 @@ export default function App() {
         <UploadModal
           onClose={() => setShowUpload(false)}
           onResult={(data) => {
+            setLocationA(data)
             setShowUpload(false)
           }}
         />
