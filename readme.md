@@ -46,7 +46,7 @@ Al autilizar el modelo generado se genero la siguiente imagen del output de la i
 
 ![alt text](tampico_clasificado.png)
 
-Una de las aplicaciones de la plataforma es comparar Tampico con otra, en nuestro caso la compararemos con Apodaca, Nuevo León. En esta imagen, podemos encontrar un mayor porcentaje de urbanización (67.8%), un menor porcentaje de vegetación (31.8%) y una nula cantidad de agua (0.0%) y porcentaje pequeño de suelo arido (0.4%).
+Una de las aplicaciones de la plataforma es comparar distintas ciudades, en este caso compararemos Tampico con Apodaca. En esta imagen, podemos encontrar un mayor porcentaje de urbanización (67.8%), un menor porcentaje de vegetación (31.8%) y una nula cantidad de agua (0.0%) y porcentaje pequeño de suelo arido (0.4%).
 
 ![alt text](apodaca_clasificado.png)
 
