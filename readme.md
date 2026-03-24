@@ -1,13 +1,40 @@
 # Urban Intelligence Platform 
 _**Autor:**_ Gustavo de Jesús Escobar Mata.
 
-## Datos
-Los datos corresponden al catalago de imagenes de Sentinel-2. Se utilizaron imagenes satelitales de: Amsterdam, Bangkok, Bogota, Ciudad de México, Dubai, Houston, Madrid, Monterrey , Mumbai y  Nairobi. La elección fue basada en variedad de suelos y regiones. 
+## Descripción general
+Los datos corresponden al catalago de imagenes de Sentinel-2. Se utilizaron imagenes satelitales de: Amsterdam, Bangkok, Bogota, Ciudad de México, Dubai, Houston, Madrid, Monterrey , Mumbai y  Nairobi. La elección fue basada en variedad de suelos y regiones.
 
-## Herramientas
-Se utilizo Anthropic API para realizar las consultas. FastApi (/chat, /predict, /cities, /stats). Agente LangChain con 3 tools funcionando. Modelo U-Net como servicio de inferencia.
+## Problema 
 
-## Estructura 
+## Solución
+
+## Aarquitectura 
+
+## Metricas
+### Metricas generales
+| Métrica                  | Valor        |
+|--------------------------|-------------|
+| Número de clases         | 4           |
+| Muestras de prueba       | 22,639      |
+| Test Loss                | 0.2019      |
+| mIoU                     | 0.8239      |
+| Mean F1                  | 0.9000      |
+| Exactitud global (pixel) | 92.16%      |
+| Tiempo (segundos)        | 1201.89     |
+
+### Metricas por clase 
+| Clase                   | IoU    | Precisión | Recall | F1 Score |
+|-------------------------|--------|-----------|--------|----------|
+| Urbano/Construido       | 0.7536 | 0.8472    | 0.8691 | 0.8576   |
+| Vegetación/Bosque       | 0.8804 | 0.9367    | 0.9355 | 0.9360   |
+| Agua                    | 0.8686 | 0.9322    | 0.9162 | 0.9231   |
+| Suelo desnudo/Árido     | 0.7931 | 0.8902    | 0.8767 | 0.8832   |
+
+## Resultados
+
+## Como ejecutar
+
+## Estructura del proyecto
 ```bash
 Urban-Intelligence-Platform/
 ├── problemas_autentication_test.py                 Verificar problemas de autenticación
@@ -68,3 +95,8 @@ Urban-Intelligence-Platform/
          ├── sentinel_hub.py
          └── inference_gcs.py
 ```
+
+## Trabajo futuro
+
+## Herramientas
+Se utilizo Anthropic API para realizar las consultas. FastApi (/chat, /predict, /cities, /stats). Agente LangChain con 3 tools funcionando. Modelo U-Net como servicio de inferencia.
