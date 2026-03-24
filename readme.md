@@ -1,4 +1,4 @@
-# Urban Intelligence Platform 
+# UrbanAI  
 _**Autor:**_ Gustavo de Jesús Escobar Mata.
 
 ## Descripción general
