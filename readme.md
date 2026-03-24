@@ -42,7 +42,7 @@ La imagen del input de la imagen satelital de Sentinel-2 que tomaremos es la cor
 
 ![alt text](tampico.png)
 
-Al autilizar el modelo generado se genero la siguiente imagen del output de la imagen satelital de Sentinel-2, la cual, muestra la distribución de territorio urbano(15.7%), vegetación(39.0%), agua(45.3%) y suelo arido(0.0%). 
+Al autilizar el modelo entrenado se genero la siguiente imagen del output de la imagen satelital de Sentinel-2, la cual, muestra la distribución de territorio urbano(15.7%), vegetación(39.0%), agua(45.3%) y suelo arido(0.0%). 
 
 ![alt text](tampico_clasificado.png)
 
