@@ -31,6 +31,7 @@ Los datos corresponden al catalago de imagenes de Sentinel-2. Se utilizaron imag
 | Suelo desnudo/Árido     | 0.7931 | 0.8902    | 0.8767 | 0.8832   |
 
 ## Resultados
+![alt text](image.png)
 
 ## Como ejecutar
 
