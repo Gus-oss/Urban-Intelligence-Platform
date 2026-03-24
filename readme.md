@@ -50,6 +50,8 @@ Una de las aplicaciones de la plataforma es comparar distintas ciudades, en este
 
 ![alt text](apodaca_clasificado.png)
 
+Por otra parte, podemos consultar con UrbanAI , un agente AI que utiliza la API de Anthropic, información externa o ingormaci
+
 ## Como ejecutar
 
 ## Estructura del proyecto
