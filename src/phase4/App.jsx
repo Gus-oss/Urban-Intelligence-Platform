@@ -1,12 +1,23 @@
-import { useState, useEffect, useRef } from 'react'
-import { Search, Upload, Satellite } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Search, Upload, Clock } from 'lucide-react'
 import Map from './components/Map.jsx'
 import FloatingChat from './components/FloatingChat.jsx'
 import CityCard from './components/CityCard.jsx'
 import SearchPanel from './components/SearchPanel.jsx'
 import UploadModal from './components/UploadModal.jsx'
+import IsochronePanel, { DEFAULT_ISOCHRONE_STATE } from './components/IsochronePanel.jsx'
 
-const API_BASE = '/api'
+const API_BASE     = '/api'
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
+
+async function fetchIsochrone(lat, lng, mode, times) {
+  const contours = times.join(',')
+  const url = `https://api.mapbox.com/isochrone/v1/mapbox/${mode}/${lng},${lat}` +
+    `?contours_minutes=${contours}&polygons=true&access_token=${MAPBOX_TOKEN}`
+  const res  = await fetch(url)
+  if (!res.ok) throw new Error(`Isochrone API error: ${res.status}`)
+  return await res.json()
+}
 
 export default function App() {
   const [health,       setHealth]       = useState(null)
@@ -17,9 +28,13 @@ export default function App() {
   const [locationB, setLocationB] = useState(null)
 
   // UI state
-  const [showSearch,   setShowSearch]   = useState(false)
-  const [showCompare,  setShowCompare]  = useState(false)
-  const [showUpload,   setShowUpload]   = useState(false)
+  const [showSearch,    setShowSearch]    = useState(false)
+  const [showCompare,   setShowCompare]   = useState(false)
+  const [showUpload,    setShowUpload]    = useState(false)
+  const [showIsochrone, setShowIsochrone] = useState(false)
+
+  // Isochrone state
+  const [isochroneState, setIsochroneState] = useState(DEFAULT_ISOCHRONE_STATE)
 
   // Mapa: ciudad activa para el flyTo
   const [mapTarget, setMapTarget] = useState(null)
@@ -60,6 +75,37 @@ export default function App() {
     setMapTarget({ lat: data.lat, lng: data.lng })
     setShowCompare(false)
   }
+
+  // Cuando el usuario hace click en el mapa → calcular isocronas
+  const handleMapClick = useCallback(async ({ lat, lng }) => {
+    if (!showIsochrone) return
+    const next = { ...isochroneState, origin: { lat, lng }, loading: true, error: null, data: null }
+    setIsochroneState(next)
+    try {
+      const geojson = await fetchIsochrone(lat, lng, next.mode, next.times)
+      setIsochroneState(s => ({ ...s, loading: false, data: geojson }))
+    } catch (err) {
+      setIsochroneState(s => ({ ...s, loading: false, error: err.message }))
+    }
+  }, [showIsochrone, isochroneState.mode, isochroneState.times])
+
+  // Cuando cambia modo/tiempos y hay origen → recalcular
+  const handleIsochroneChange = async (newState) => {
+    setIsochroneState(newState)
+    if (!newState.origin || newState.times.length === 0) return
+    setIsochroneState(s => ({ ...s, ...newState, loading: true, error: null }))
+    try {
+      const geojson = await fetchIsochrone(
+        newState.origin.lat, newState.origin.lng,
+        newState.mode, newState.times,
+      )
+      setIsochroneState(s => ({ ...s, loading: false, data: geojson }))
+    } catch (err) {
+      setIsochroneState(s => ({ ...s, loading: false, error: err.message }))
+    }
+  }
+
+  const clearIsochrone = () => setIsochroneState(DEFAULT_ISOCHRONE_STATE)
 
   const STATUS = [
     { label: 'MODELO', ok: health?.model_loaded },
@@ -144,6 +190,25 @@ export default function App() {
             BUSCAR
           </button>
 
+          {/* Isocronas */}
+          <button
+            onClick={() => setShowIsochrone(v => !v)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 7,
+              padding: '6px 14px', borderRadius: 8,
+              background: showIsochrone ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)',
+              border: `1px solid ${showIsochrone ? 'rgba(0,255,136,0.5)' : 'var(--border)'}`,
+              cursor: 'pointer', transition: 'all 0.2s',
+              fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1,
+              color: showIsochrone ? 'var(--green)' : 'var(--text-muted)',
+            }}
+            onMouseEnter={e => { if (!showIsochrone) { e.currentTarget.style.borderColor = 'var(--green)'; e.currentTarget.style.color = 'var(--green)' }}}
+            onMouseLeave={e => { if (!showIsochrone) { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)' }}}
+          >
+            <Clock size={12} />
+            ISOCRONAS
+          </button>
+
           {/* Upload */}
           <button
             onClick={() => setShowUpload(true)}
@@ -214,7 +279,39 @@ export default function App() {
             mask_flat: locationB.mask_flat,
             mask_size: locationB.mask_size,
           } : null}
+          isochroneState={isochroneState}
+          onMapClick={showIsochrone ? handleMapClick : null}
         />
+
+        {/* Cursor hint cuando isocronas activas */}
+        {showIsochrone && !isochroneState.origin && (
+          <div style={{
+            position: 'absolute', top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+            background: 'rgba(6,12,20,0.9)',
+            border: '1px solid var(--green)',
+            borderRadius: 10, padding: '10px 18px',
+            fontFamily: 'var(--font-mono)', fontSize: 11,
+            color: 'var(--green)', letterSpacing: 1,
+            animation: 'pulse 2s infinite',
+          }}>
+            🖱️ &nbsp; CLICK EN EL MAPA PARA CALCULAR ISOCRONAS
+          </div>
+        )}
+
+        {/* Panel de isocronas flotante */}
+        {showIsochrone && (
+          <div style={{
+            position: 'absolute', top: 16, right: 16, zIndex: 500,
+          }}>
+            <IsochronePanel
+              state={isochroneState}
+              onChange={handleIsochroneChange}
+              onClear={clearIsochrone}
+            />
+          </div>
+        )}
 
         {/* ── Cards flotantes (bottom left) ── */}
         <div style={{
