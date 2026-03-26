@@ -66,7 +66,7 @@ async function loadCityGeoJSON(cityKey) {
   }
 }
 
-export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget, overlayA, overlayB }) {
+export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget, overlayA, overlayB, isochroneState, onMapClick }) {
   const mapContainer  = useRef(null)
   const map           = useRef(null)
   const prevCity      = useRef(null)
@@ -82,6 +82,82 @@ export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget, o
     if (map.current.isStyleLoaded()) fly()
     else map.current.once('style.load', fly)
   }, [mapTarget?.lat, mapTarget?.lng, mapTarget?.ts])
+
+  // ── Isocronas ────────────────────────────────────────────────────────────
+  const ISOCHRONE_COLORS = {
+    walking: '#00ff88',
+    cycling: '#00d4ff',
+    driving: '#ffaa00',
+  }
+
+  const RING_OPACITY = { 5: 0.45, 10: 0.35, 15: 0.25, 30: 0.15 }
+
+  // Dibujar/actualizar isocronas en el mapa
+  useEffect(() => {
+    if (!map.current) return
+
+    const draw = () => {
+      // Limpiar capas anteriores
+      ['iso-fill-30','iso-fill-15','iso-fill-10','iso-fill-5',
+       'iso-line-30','iso-line-15','iso-line-10','iso-line-5'].forEach(id => {
+        if (map.current.getLayer(id)) map.current.removeLayer(id)
+      })
+      if (map.current.getSource('isochrone')) map.current.removeSource('isochrone')
+
+      if (!isochroneState?.data) return
+
+      const color = ISOCHRONE_COLORS[isochroneState.mode] || '#00d4ff'
+
+      map.current.addSource('isochrone', {
+        type: 'geojson',
+        data: isochroneState.data,
+      })
+
+      // Dibujar de mayor a menor (30 → 5) para que los pequeños queden encima
+      const times = [...(isochroneState.times || [])].sort((a, b) => b - a)
+      times.forEach(t => {
+        const opacity = RING_OPACITY[t] || 0.2
+
+        map.current.addLayer({
+          id:     `iso-fill-${t}`,
+          type:   'fill',
+          source: 'isochrone',
+          filter: ['==', ['get', 'contour'], t],
+          paint:  {
+            'fill-color':   color,
+            'fill-opacity': opacity,
+          },
+        })
+
+        map.current.addLayer({
+          id:     `iso-line-${t}`,
+          type:   'line',
+          source: 'isochrone',
+          filter: ['==', ['get', 'contour'], t],
+          paint:  {
+            'line-color':   color,
+            'line-width':   1.5,
+            'line-opacity': 0.8,
+          },
+        })
+      })
+    }
+
+    if (map.current.isStyleLoaded()) draw()
+    else map.current.once('style.load', draw)
+  }, [isochroneState?.data, isochroneState?.mode])
+
+  // Click en el mapa para seleccionar origen de isocrona
+  useEffect(() => {
+    if (!map.current || !onMapClick) return
+
+    const handleClick = (e) => {
+      onMapClick({ lat: e.lngLat.lat, lng: e.lngLat.lng })
+    }
+
+    map.current.on('click', handleClick)
+    return () => map.current?.off('click', handleClick)
+  }, [onMapClick])
 
   // Genera PNG de la máscara LULC en un canvas offscreen
   const buildMaskPng = (maskFlat, maskSize) => {
