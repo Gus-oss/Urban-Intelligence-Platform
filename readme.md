@@ -36,6 +36,7 @@ El modelo realiza segmentación semántica en imágenes satelitales Sentinel-2, 
 - Vegetación/Bosque
 - Agua
 - Árido/Suelo desnudo
+
 ### Input vs Output de Tampico, Tamaulipas, México.
 
 La imagen del input de la imagen satelital de Sentinel-2 que tomaremos es la correspondiente a Tampico, Tamaulipas, México.
