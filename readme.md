@@ -54,6 +54,10 @@ Por otra parte, podemos consultar con UrbanAI , un agente AI que utiliza la API 
 
 ![alt text](agente_ai.png)
 
+Se añadieron isocronas (min/seg) con tres categorias: a pie, bici, coche y coche en trafico. La opción nos permite obtener poligonos o contorno de hasta donde se puede aceder desde un punto de partida. 
+
+
+
 ## Como ejecutar
 
 ## Estructura del proyecto
