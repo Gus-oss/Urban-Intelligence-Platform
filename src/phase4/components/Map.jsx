@@ -84,60 +84,63 @@ export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget, o
   }, [mapTarget?.lat, mapTarget?.lng, mapTarget?.ts])
 
   // ── Isocronas ────────────────────────────────────────────────────────────
+  // Colores visibles sobre LULC: blanco, magenta, naranja, violeta
   const ISOCHRONE_COLORS = {
-    walking: '#00ff88',
-    cycling: '#00d4ff',
-    driving: '#ffaa00',
+    'walking':         '#ffffff',
+    'cycling':         '#ff00ff',
+    'driving':         '#ff6600',
+    'driving-traffic': '#cc44ff',
   }
+  const RING_OPACITY_TIME = { 5: 0.50, 10: 0.38, 15: 0.26, 30: 0.16 }
+  const RING_OPACITY_DIST = { 1000: 0.50, 5000: 0.38, 25000: 0.26, 100000: 0.16 }
+  const ALL_LAYER_IDS = [
+    'iso-fill-5','iso-fill-10','iso-fill-15','iso-fill-30',
+    'iso-fill-1000','iso-fill-5000','iso-fill-25000','iso-fill-100000',
+    'iso-line-5','iso-line-10','iso-line-15','iso-line-30',
+    'iso-line-1000','iso-line-5000','iso-line-25000','iso-line-100000',
+  ]
 
-  const RING_OPACITY = { 5: 0.45, 10: 0.35, 15: 0.25, 30: 0.15 }
-
-  // Dibujar/actualizar isocronas en el mapa
   useEffect(() => {
     if (!map.current) return
 
     const draw = () => {
-      // Limpiar capas anteriores
-      ['iso-fill-30','iso-fill-15','iso-fill-10','iso-fill-5',
-       'iso-line-30','iso-line-15','iso-line-10','iso-line-5'].forEach(id => {
+      ALL_LAYER_IDS.forEach(id => {
         if (map.current.getLayer(id)) map.current.removeLayer(id)
       })
       if (map.current.getSource('isochrone')) map.current.removeSource('isochrone')
 
       if (!isochroneState?.data) return
 
-      const color = ISOCHRONE_COLORS[isochroneState.mode] || '#00d4ff'
+      const color    = ISOCHRONE_COLORS[isochroneState.mode] || '#ffffff'
+      const isTime   = isochroneState.metric !== 'distance'
+      const ringOp   = isTime ? RING_OPACITY_TIME : RING_OPACITY_DIST
+      const geomType = isochroneState.geomType || 'polygon'
+      const values   = isTime
+        ? (isochroneState.times || [])
+        : (isochroneState.dists || [])
 
-      map.current.addSource('isochrone', {
-        type: 'geojson',
-        data: isochroneState.data,
-      })
+      map.current.addSource('isochrone', { type: 'geojson', data: isochroneState.data })
 
-      // Dibujar de mayor a menor (30 → 5) para que los pequeños queden encima
-      const times = [...(isochroneState.times || [])].sort((a, b) => b - a)
-      times.forEach(t => {
-        const opacity = RING_OPACITY[t] || 0.2
+      const sorted = [...values].sort((a, b) => b - a)
+      sorted.forEach(v => {
+        const opacity = ringOp[v] || 0.2
+        const filter  = ['==', ['get', 'contour'], v]
+
+        if (geomType === 'polygon') {
+          map.current.addLayer({
+            id: `iso-fill-${v}`, type: 'fill', source: 'isochrone',
+            filter,
+            paint: { 'fill-color': color, 'fill-opacity': opacity },
+          })
+        }
 
         map.current.addLayer({
-          id:     `iso-fill-${t}`,
-          type:   'fill',
-          source: 'isochrone',
-          filter: ['==', ['get', 'contour'], t],
-          paint:  {
-            'fill-color':   color,
-            'fill-opacity': opacity,
-          },
-        })
-
-        map.current.addLayer({
-          id:     `iso-line-${t}`,
-          type:   'line',
-          source: 'isochrone',
-          filter: ['==', ['get', 'contour'], t],
-          paint:  {
+          id: `iso-line-${v}`, type: 'line', source: 'isochrone',
+          filter,
+          paint: {
             'line-color':   color,
-            'line-width':   1.5,
-            'line-opacity': 0.8,
+            'line-width':   geomType === 'linestring' ? 2.5 : 1.5,
+            'line-opacity': 0.9,
           },
         })
       })
@@ -145,7 +148,7 @@ export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget, o
 
     if (map.current.isStyleLoaded()) draw()
     else map.current.once('style.load', draw)
-  }, [isochroneState?.data, isochroneState?.mode])
+  }, [isochroneState?.data, isochroneState?.mode, isochroneState?.geomType])
 
   // Click en el mapa para seleccionar origen de isocrona
   useEffect(() => {
