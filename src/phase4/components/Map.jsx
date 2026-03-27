@@ -84,71 +84,94 @@ export default function Map({ selectedCity, onCitySelect, lulcData, mapTarget, o
   }, [mapTarget?.lat, mapTarget?.lng, mapTarget?.ts])
 
   // ── Isocronas ────────────────────────────────────────────────────────────
-  // Colores visibles sobre LULC: blanco, magenta, naranja, violeta
-  const ISOCHRONE_COLORS = {
-    'walking':         '#ffffff',
-    'cycling':         '#ff00ff',
-    'driving':         '#ff6600',
-    'driving-traffic': '#cc44ff',
+  // Color por modo (borde/línea)
+  const MODE_COLORS = {
+    'walking':         '#f0f0f0',
+    'cycling':         '#ff2d78',
+    'driving':         '#b30000',
+    'driving-traffic': '#9b00e8',
   }
-  const RING_OPACITY_TIME = { 5: 0.50, 10: 0.38, 15: 0.26, 30: 0.16 }
-  const RING_OPACITY_DIST = { 1000: 0.50, 5000: 0.38, 25000: 0.26, 100000: 0.16 }
-  const ALL_LAYER_IDS = [
-    'iso-fill-5','iso-fill-10','iso-fill-15','iso-fill-30',
-    'iso-fill-1000','iso-fill-5000','iso-fill-25000','iso-fill-100000',
-    'iso-line-5','iso-line-10','iso-line-15','iso-line-30',
-    'iso-line-1000','iso-line-5000','iso-line-25000','iso-line-100000',
-  ]
+  // Color por anillo — gradiente rojo→azul como referencia histórica
+  const RING_COLORS_TIME = { 5: '#ff3300', 10: '#ffe000', 15: '#00cfff', 30: '#4040ff' }
+  const RING_COLORS_DIST = { 1000: '#ff3300', 5000: '#ffe000', 25000: '#00cfff', 100000: '#4040ff' }
+  const RING_OPACITY_TIME = { 5: 0.55, 10: 0.42, 15: 0.30, 30: 0.18 }
+  const RING_OPACITY_DIST = { 1000: 0.55, 5000: 0.42, 25000: 0.30, 100000: 0.18 }
+
+  // Generar IDs de todas las posibles capas
+  const modeIds  = ['walking','cycling','driving','driving-traffic']
+  const timeVals = [5, 10, 15, 30]
+  const distVals = [1000, 5000, 25000, 100000]
+  const ALL_ISO_LAYERS = []
+  modeIds.forEach(m => {
+    const safe = m.replace('-','_')
+    ;[...timeVals, ...distVals].forEach(v => {
+      ALL_ISO_LAYERS.push(`iso-fill-${safe}-${v}`, `iso-line-${safe}-${v}`)
+    })
+  })
 
   useEffect(() => {
     if (!map.current) return
 
     const draw = () => {
-      ALL_LAYER_IDS.forEach(id => {
+      // Limpiar todas las capas anteriores
+      ALL_ISO_LAYERS.forEach(id => {
         if (map.current.getLayer(id)) map.current.removeLayer(id)
       })
       if (map.current.getSource('isochrone')) map.current.removeSource('isochrone')
 
       if (!isochroneState?.data) return
 
-      const color    = ISOCHRONE_COLORS[isochroneState.mode] || '#ffffff'
       const isTime   = isochroneState.metric !== 'distance'
+      const ringColors = isTime ? RING_COLORS_TIME : RING_COLORS_DIST
       const ringOp   = isTime ? RING_OPACITY_TIME : RING_OPACITY_DIST
       const geomType = isochroneState.geomType || 'polygon'
       const values   = isTime
         ? (isochroneState.times || [])
         : (isochroneState.dists || [])
+      const activeModes = isochroneState.activeModes || ['walking']
 
       map.current.addSource('isochrone', { type: 'geojson', data: isochroneState.data })
 
+      // Dibujar de mayor a menor para que los pequeños queden encima
       const sorted = [...values].sort((a, b) => b - a)
-      sorted.forEach(v => {
-        const opacity = ringOp[v] || 0.2
-        const filter  = ['==', ['get', 'contour'], v]
 
-        if (geomType === 'polygon') {
+      activeModes.forEach(mode => {
+        const safe      = mode.replace('-', '_')
+        const modeColor = MODE_COLORS[mode] || '#ffffff'
+
+        sorted.forEach(v => {
+          const ringColor = ringColors[v] || '#ffffff'
+          const opacity   = ringOp[v] || 0.2
+          // Filtrar por valor Y modo
+          const filter = ['all',
+            ['==', ['get', 'contour'], v],
+            ['==', ['get', 'mode'],    mode],
+          ]
+
+          if (geomType === 'polygon') {
+            map.current.addLayer({
+              id: `iso-fill-${safe}-${v}`, type: 'fill', source: 'isochrone',
+              filter,
+              paint: { 'fill-color': ringColor, 'fill-opacity': opacity },
+            })
+          }
+
           map.current.addLayer({
-            id: `iso-fill-${v}`, type: 'fill', source: 'isochrone',
+            id: `iso-line-${safe}-${v}`, type: 'line', source: 'isochrone',
             filter,
-            paint: { 'fill-color': color, 'fill-opacity': opacity },
+            paint: {
+              'line-color':   geomType === 'linestring' ? ringColor : modeColor,
+              'line-width':   geomType === 'linestring' ? 2.5 : 1.5,
+              'line-opacity': 0.9,
+            },
           })
-        }
-
-        map.current.addLayer({
-          id: `iso-line-${v}`, type: 'line', source: 'isochrone',
-          filter,
-          paint: {
-            'line-color':   color,
-            'line-width':   geomType === 'linestring' ? 2.5 : 1.5,
-            'line-opacity': 0.9,
-          },
         })
       })
     }
 
     if (map.current.isStyleLoaded()) draw()
     else map.current.once('style.load', draw)
-  }, [isochroneState?.data, isochroneState?.mode, isochroneState?.geomType])
+  }, [isochroneState?.data, isochroneState?.mode, isochroneState?.geomType, isochroneState?.activeModes])
 
   // Click en el mapa para seleccionar origen de isocrona
   useEffect(() => {
