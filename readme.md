@@ -72,7 +72,7 @@ Urban-Intelligence-Platform/
 ├── notebooks/
 ├── experiments/  
 ├── Dockerfile.backend                              Backend para la phase5 
-├── Dockerfile.frontend                             Frontend par ala phase5
+├── Dockerfile.frontend                             Frontend para la phase5
 ├── nginx.conf                                      Para la phase5
 ├── cloudbuild.yaml                                 Para la phase5 con GCP
 ├── deploy.sh                                       Para la phase5 con GCP
@@ -97,14 +97,14 @@ Urban-Intelligence-Platform/
     ├── prueba_autenticación.py                     Prueba de autenticación de Sentinel-2
     ├── train.py                                    Entrenamiento de modelo
     ├── worldcover_downloader.py                    Descarga de Titles de las imagenes  
-    ├── phase3                                      Fase de implementación de agentes con Anthropic
+    ├── phase3/                                     Fase de implementación de agentes con Anthropic
     │    ├── _init_.py
     │    ├── agent.py 
     │    ├── api.py
     │    ├── inference.py
     │    ├── rag.py
     │    └── tools.py
-    ├── phase4                                      Fase de Frontend
+    ├── phase4/                                     Fase de Frontend
     │    ├── package.json                            
     │    ├── vite.config.js
     │    ├── index.html
@@ -117,7 +117,7 @@ Urban-Intelligence-Platform/
     │          ├── SearchPanel.jsx
     │          ├── IsochronePanel.jsx 
     │          └── UploadModal.jsx
-    └── phase5
+    └── phase5/
          ├── __init__.py
          ├── api.py
          ├── sentinel_hub.py
