@@ -10,12 +10,32 @@ import IsochronePanel, { DEFAULT_ISOCHRONE_STATE } from './components/IsochroneP
 const API_BASE     = '/api'
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
-async function fetchIsochrone(lat, lng, mode, times) {
-  const contours = times.join(',')
-  const url = `https://api.mapbox.com/isochrone/v1/mapbox/${mode}/${lng},${lat}` +
-    `?contours_minutes=${contours}&polygons=true&access_token=${MAPBOX_TOKEN}`
+async function fetchIsochrone(lat, lng, mode, state) {
+  const { metric, geomType, times, dists } = state
+  const isTime   = metric === 'time'
+  const values   = isTime ? times : dists
+  if (!values || values.length === 0) throw new Error('Selecciona al menos un valor')
+
+  const polygons = geomType !== 'linestring'
+  const contours = values.join(',')
+
+  const params = new URLSearchParams({
+    polygons:       polygons,
+    access_token:   MAPBOX_TOKEN,
+  })
+
+  if (isTime) {
+    params.set('contours_minutes', contours)
+  } else {
+    params.set('contours_meters', contours)
+  }
+
+  const url = `https://api.mapbox.com/isochrone/v1/mapbox/${mode}/${lng},${lat}?${params}`
   const res  = await fetch(url)
-  if (!res.ok) throw new Error(`Isochrone API error: ${res.status}`)
+  if (!res.ok) {
+    const txt = await res.text()
+    throw new Error(`Isochrone API ${res.status}: ${txt.slice(0, 120)}`)
+  }
   return await res.json()
 }
 
@@ -76,29 +96,51 @@ export default function App() {
     setShowCompare(false)
   }
 
-  // Cuando el usuario hace click en el mapa → calcular isocronas
+  // Fetch todas las isocronas para los modos activos
+  const fetchAllModes = async (origin, state) => {
+    const values = state.metric === 'time' ? state.times : state.dists
+    if (!origin || !values || values.length === 0) return null
+
+    const results = await Promise.all(
+      state.activeModes.map(mode =>
+        fetchIsochrone(origin.lat, origin.lng, mode, state)
+          .catch(err => ({ error: err.message, mode }))
+      )
+    )
+
+    // Combinar todos los GeoJSON en uno solo, añadiendo propiedad 'mode'
+    const features = []
+    results.forEach((geojson, i) => {
+      if (geojson?.features) {
+        geojson.features.forEach(f => {
+          features.push({ ...f, properties: { ...f.properties, mode: state.activeModes[i] } })
+        })
+      }
+    })
+    return { type: 'FeatureCollection', features }
+  }
+
+  // Click en el mapa → calcular isocronas para todos los modos activos
   const handleMapClick = useCallback(async ({ lat, lng }) => {
     if (!showIsochrone) return
     const next = { ...isochroneState, origin: { lat, lng }, loading: true, error: null, data: null }
     setIsochroneState(next)
     try {
-      const geojson = await fetchIsochrone(lat, lng, next.mode, next.times)
+      const geojson = await fetchAllModes({ lat, lng }, next)
       setIsochroneState(s => ({ ...s, loading: false, data: geojson }))
     } catch (err) {
       setIsochroneState(s => ({ ...s, loading: false, error: err.message }))
     }
-  }, [showIsochrone, isochroneState.mode, isochroneState.times])
+  }, [showIsochrone, isochroneState])
 
-  // Cuando cambia modo/tiempos y hay origen → recalcular
+  // Cuando cambia cualquier parámetro y hay origen → recalcular
   const handleIsochroneChange = async (newState) => {
     setIsochroneState(newState)
-    if (!newState.origin || newState.times.length === 0) return
+    const values = newState.metric === 'time' ? newState.times : newState.dists
+    if (!newState.origin || !values || values.length === 0 || !newState.activeModes?.length) return
     setIsochroneState(s => ({ ...s, ...newState, loading: true, error: null }))
     try {
-      const geojson = await fetchIsochrone(
-        newState.origin.lat, newState.origin.lng,
-        newState.mode, newState.times,
-      )
+      const geojson = await fetchAllModes(newState.origin, newState)
       setIsochroneState(s => ({ ...s, loading: false, data: geojson }))
     } catch (err) {
       setIsochroneState(s => ({ ...s, loading: false, error: err.message }))
@@ -196,14 +238,13 @@ export default function App() {
             style={{
               display: 'flex', alignItems: 'center', gap: 7,
               padding: '6px 14px', borderRadius: 8,
-              background: showIsochrone ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)',
-              border: `1px solid ${showIsochrone ? 'rgba(0,255,136,0.5)' : 'var(--border)'}`,
+              background: showIsochrone ? 'var(--accent)' : 'var(--accent-glow)',
+              border: `1px solid ${showIsochrone ? 'var(--accent)' : 'rgba(0,212,255,0.3)'}`,
               cursor: 'pointer', transition: 'all 0.2s',
               fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1,
-              color: showIsochrone ? 'var(--green)' : 'var(--text-muted)',
+              color: showIsochrone ? 'var(--bg-deep)' : 'var(--accent)',
+              fontWeight: showIsochrone ? 700 : 400,
             }}
-            onMouseEnter={e => { if (!showIsochrone) { e.currentTarget.style.borderColor = 'var(--green)'; e.currentTarget.style.color = 'var(--green)' }}}
-            onMouseLeave={e => { if (!showIsochrone) { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)' }}}
           >
             <Clock size={12} />
             ISOCRONAS
@@ -290,10 +331,10 @@ export default function App() {
             transform: 'translate(-50%, -50%)',
             pointerEvents: 'none',
             background: 'rgba(6,12,20,0.9)',
-            border: '1px solid var(--green)',
+            border: '1px solid var(--accent)',
             borderRadius: 10, padding: '10px 18px',
             fontFamily: 'var(--font-mono)', fontSize: 11,
-            color: 'var(--green)', letterSpacing: 1,
+            color: 'var(--accent)', letterSpacing: 1,
             animation: 'pulse 2s infinite',
           }}>
             🖱️ &nbsp; CLICK EN EL MAPA PARA CALCULAR ISOCRONAS
