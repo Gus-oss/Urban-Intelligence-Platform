@@ -114,7 +114,8 @@ Urban-Intelligence-Platform/
     │          ├── Map.jsx
     │          ├── FloatingChat.jsx
     │          ├── CityCard.jsx
-    │          ├── SearchPanel.jsx 
+    │          ├── SearchPanel.jsx
+    │          ├── IsochronePanel.jsx 
     │          └── UploadModal.jsx
     └── phase5
          ├── __init__.py
