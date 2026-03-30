@@ -41,19 +41,19 @@ El modelo realiza segmentación semántica en imágenes satelitales Sentinel-2, 
 
 La imagen del input de la imagen satelital de Sentinel-2 que tomaremos es la correspondiente a Tampico, Tamaulipas, México.
 
-![alt text](images\tampico.png)
+![alt text](images/tampico.png)
 
 Al autilizar el modelo entrenado se genero la siguiente imagen del output de la imagen satelital de Sentinel-2, la cual, muestra la distribución de territorio urbano(15.7%), vegetación(39.0%), agua(45.3%) y suelo arido(0.0%). 
 
-![alt text](images\tampico_clasificado.png)
+![alt text](images/tampico_clasificado.png)
 
 Una de las aplicaciones de la plataforma es comparar distintas ciudades, en este caso compararemos Tampico con Apodaca. En esta imagen, podemos encontrar un mayor porcentaje de urbanización (67.8%), un menor porcentaje de vegetación (31.8%) y una nula cantidad de agua (0.0%) y porcentaje pequeño de suelo arido (0.4%).
 
-![alt text](images\apodaca_clasificado.png)
+![alt text](images/apodaca_clasificado.png)
 
 Por otra parte, podemos consultar con UrbanAI , un agente AI que utiliza la API de Anthropic, información externa o información sobre las ciudades. 
 
-![alt text](images\agente_ai.png)
+![alt text](images/agente_ai.png)
 
 Se añadieron isocronas (min/seg) con tres categorias: a pie, bici, coche y coche en trafico. La opción nos permite obtener poligonos o contorno de hasta donde se puede aceder desde un punto de partida. 
 
