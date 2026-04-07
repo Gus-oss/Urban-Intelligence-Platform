@@ -23,6 +23,7 @@ ngrok_recovery_codes/
 data/raw/*
 data/processed/*
 data/chroma_db/*
+
 # Node
 node_modules/
 src/phase4/node_modules/

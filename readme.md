@@ -77,7 +77,7 @@ Urban-Intelligence-Platform/
 ├── Dockerfile.frontend                             Frontend para la phase5
 ├── nginx.conf                                      Para la phase5
 ├── cloudbuild.yaml                                 Para la phase5 con GCP
-├── deploy.sh                                       Para la phase5 con GCP
+├── deploy.sh                                       Para la phase5 con GCP 
 ├── images/
 │    ├── images_readme                              Imagenes mostradas en el readme              
 │    └── images_test                                Imagenes prueba para subir a la plataforma
@@ -87,6 +87,7 @@ Urban-Intelligence-Platform/
 │    └── raw/                                       Carpeta de datos sin procesar 
 ├──  models/
 │    ├── best_model.pth                             Mejor modelo obtenido
+│    ├── lulc_cache.json                            Cache  
 │    └── results_test_results.json                  Evaluacion del modelo 
 ├──  docs/
 │    └── knowledge/
