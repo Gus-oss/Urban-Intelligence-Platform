@@ -76,8 +76,9 @@ Urban-Intelligence-Platform/
 ├── nginx.conf                                      Para la phase5
 ├── cloudbuild.yaml                                 Para la phase5 con GCP
 ├── deploy.sh                                       Para la phase5 con GCP
-├── images/                                          
-│    └── images_readme                              Imagenes mostradas en el readme
+├── images/
+│    ├── images_readme                              Imagenes mostradas en el readme              
+│    └── images_test                                Imagenes prueba para subir a la plataforma
 ├── data/
 │    ├── chroma_db/ 
 │    ├── processed/                                 Carpeta de datos procesados
