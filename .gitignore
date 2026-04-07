@@ -13,6 +13,11 @@ venv/
 .env
 
 # ========================
+# Ngrok recovery codes
+# ========================
+ngrok_recovery_codes/
+
+# ========================
 # Data (NO subir Big Data)
 # ========================
 data/raw/*
