@@ -12,6 +12,7 @@ Los datos corresponden al catalago de imagenes de Sentinel-2. Se utilizaron imag
 
 ## Metricas
 ### Metricas generales
+
 | Métrica                  | Valor        |
 |--------------------------|-------------|
 | Número de clases         | 4           |
@@ -23,6 +24,7 @@ Los datos corresponden al catalago de imagenes de Sentinel-2. Se utilizaron imag
 | Tiempo (segundos)        | 1201.89     |
 
 ### Metricas por clase 
+
 | Clase                   | IoU    | Precisión | Recall | F1 Score |
 |-------------------------|--------|-----------|--------|----------|
 | Urbano/Construido       | 0.7536 | 0.8472    | 0.8691 | 0.8576   |
