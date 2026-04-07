@@ -18,6 +18,11 @@ venv/
 ngrok_recovery_codes/
 
 # ========================
+# GCP comands
+# ========================
+gcp-comands/
+
+# ========================
 # Data (NO subir Big Data)
 # ========================
 data/raw/*
