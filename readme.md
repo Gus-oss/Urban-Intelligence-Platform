@@ -51,7 +51,7 @@ Al autilizar el modelo entrenado se genero la siguiente imagen del output de la 
 
 Una de las aplicaciones de la plataforma es comparar distintas ciudades, en este caso compararemos Tampico con Apodaca. En esta imagen, podemos encontrar un mayor porcentaje de urbanización (67.8%), un menor porcentaje de vegetación (31.8%) y una nula cantidad de agua (0.0%) y porcentaje pequeño de suelo arido (0.4%).
 
-![alt text](images/imagess_readme/apodaca_clasificado.png)
+![alt text](images/images_readme/apodaca_clasificado.png)
 
 Por otra parte, podemos consultar con UrbanAI , un agente AI que utiliza la API de Anthropic, información externa o información sobre las ciudades. 
 
