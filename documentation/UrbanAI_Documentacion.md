@@ -699,7 +699,6 @@ Integración de datos de contaminación NO₂ y CO de Sentinel-5P. Modelo predic
 
 ---
 
-
 # 18. Referencias
 
 - Ronneberger, O., Fischer, P., & Brox, T. (2015). *U-Net: Convolutional Networks for Biomedical Image Segmentation*. MICCAI 2015.
