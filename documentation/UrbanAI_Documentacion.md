@@ -251,23 +251,24 @@ $$
 | 0.50 – 0.65 | Aceptable |
 | < 0.50 | Insuficiente |
 
-### Resultado Obtenido
+### Resultado Obtenido en conjunto de prueba
 
 $$
-\text{mIoU}_{\text{UrbanAI}} = 0.6562
+\text{mIoU}_{\text{UrbanAI}} = 0.8239
 $$
 
-Este resultado cae en la categoría **Bueno**, considerando que el modelo opera sobre 4 bandas de imágenes satelitales reales con variabilidad climática, estacional y geográfica alta. La clase Urbano/Construido y Vegetación son las mejor clasificadas; Agua tiene buena separabilidad espectral; Suelo árido presenta mayor confusión con zonas urbanas de baja densidad.
+Este resultado cae en la categoría **Excelente**, considerando que el modelo opera sobre 4 bandas de imágenes satelitales reales con variabilidad climática, estacional y geográfica alta.
 
-## 6.2 IoU por Clase (Estimado)
+## 6.2 IoU por Clase para el conjunto de prueba
 
 | Clase | IoU aproximado |
 |---|---|
-| Urbano / Construido | ~0.72 |
-| Vegetación / Bosque | ~0.75 |
-| Agua | ~0.80 |
-| Suelo desnudo / Árido | ~0.55 |
-| Industrial | 0.00 (clase pendiente) |
+| Urbano / Construido | 0.7536 |
+| Vegetación / Bosque | 0.8804 |
+| Agua | 0.8686 |
+| Suelo desnudo / Árido | 0.7931 |
+
+La clase Agua y Vegetación son las mejor clasificadas; Agua tiene buena separabilidad espectral; Suelo árido presenta mayor confusión con zonas urbanas de baja densidad.
 
 ## 6.3 Métricas Secundarias
 
@@ -284,30 +285,30 @@ Adicionalmente se monitorean durante entrenamiento:
 ## 7.1 Diagrama de Componentes
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                     FRONTEND (React + Vite)             │
+┌────────────────────────────────────────────────────────┐
+│                     FRONTEND (React + Vite)            │
 │  ┌──────────┐ ┌──────────┐ ┌───────────┐ ┌──────────┐  │
 │  │  Map.jsx │ │CityCard  │ │ Isochrone │ │Floating  │  │
 │  │ (Mapbox) │ │  .jsx    │ │ Panel.jsx │ │Chat.jsx  │  │
 │  └────┬─────┘ └────┬─────┘ └─────┬─────┘ └────┬─────┘  │
-│       └────────────┴─────────────┴─────────────┘        │
-│                         App.jsx                          │
-└──────────────────────────┬──────────────────────────────┘
+│       └────────────┴─────────────┴────────────┘        │
+│                         App.jsx                        │
+└──────────────────────────┬─────────────────────────────┘
                            │ HTTP / REST
 ┌──────────────────────────▼──────────────────────────────┐
-│                  BACKEND (FastAPI)                       │
+│                  BACKEND (FastAPI)                      │
 │  ┌──────────────┐   ┌────────────────┐                  │
 │  │  phase3/     │   │  phase5/       │                  │
 │  │  api.py      │   │  api.py        │                  │
 │  │  (base)      │◄──│  (extensión)   │                  │
 │  └──────┬───────┘   └───────┬────────┘                  │
-│         │                   │                            │
+│         │                   │                           │
 │  ┌──────▼───────┐   ┌───────▼────────┐                  │
 │  │  U-Net +     │   │  SentinelHub   │                  │
 │  │  EfficientB3 │   │  Service       │                  │
 │  │  (PyTorch)   │   │  (OAuth2)      │                  │
 │  └──────────────┘   └────────────────┘                  │
-│                                                          │
+│                                                         │
 │  ┌──────────────────────────────────────────┐           │
 │  │  LangChain Agent + ChromaDB (RAG)        │           │
 │  │  Claude claude-sonnet-4-20250514 (LLM)   │           │
@@ -315,8 +316,8 @@ Adicionalmente se monitorean durante entrenamiento:
 └─────────────────────────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────┐
-│              APIS EXTERNAS                               │
-│  Sentinel Hub · Mapbox · Anthropic API · ERA5            │
+│              APIS EXTERNAS                              │
+│  Sentinel Hub · Mapbox · Anthropic API · ERA5           │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -324,47 +325,69 @@ Adicionalmente se monitorean durante entrenamiento:
 
 ```
 Urban-Intelligence-Platform/
-│
-├── urban_intel_env/              # Entorno virtual Python (Windows)
-│
-├── models/
-│   └── best_model.pth            # Pesos del modelo U-Net + EfficientNet-B3
-│
-├── src/
-│   ├── phase3/
-│   │   └── api.py                # FastAPI base — 10 ciudades precargadas
-│   │                             # ChatRequest usa campo 'message' (no 'question')
-│   │                             # Exporta get_inference_service()
-│   │
-│   ├── phase4/
-│   │   ├── .env                  # VITE_MAPBOX_TOKEN
-│   │   ├── App.jsx               # Dashboard principal UrbanAI
-│   │   └── components/
-│   │       ├── Map.jsx           # Mapbox satellite-streets-v12, globo 3D
-│   │       │                     # overlay LULC sin parpadeo (updateImage + prevOverlay refs)
-│   │       │                     # isocronas multi-modo
-│   │       ├── CityCard.jsx      # Card flotante — población via agente
-│   │       │                     # distribución LULC, botón comparar, onFlyTo en header
-│   │       ├── SearchPanel.jsx   # Dropdown búsqueda Mapbox geocoding
-│   │       │                     # position fixed desde root
-│   │       ├── FloatingChat.jsx  # Bubble flotante UrbanAI → /api/chat
-│   │       ├── IsochronePanel.jsx# Multi-modo simultáneo, minutos/metros
-│   │       │                     # polígonos/líneas, todos/quitar
-│   │       └── UploadModal.jsx   # Modal upload .npy/.tif/.jpg/.png
-│   │                             # timeout 2 minutos
-│   │
-│   └── phase5/
-│       ├── api.py                # Extiende phase3
-│       │                         # Agrega /analyze-location y /sentinel/status
-│       │                         # Importa app desde phase3
-│       └── sentinel_hub.py       # SentinelHubService con OAuth2
-│                                 # Métodos: get_image_for_location()
-│                                 #          get_preview_rgb()
-│
+├── problemas_autentication_test.py                 Verificar problemas de autenticación
+├── .env
+├── .gitignore
+├── readme.md
+├── requirements.txt 
+├── notebooks/
+├── experiments/  
+├── Dockerfile.backend                              Backend para la phase5 
+├── Dockerfile.frontend                             Frontend para la phase5
+├── nginx.conf                                      Para la phase5
+├── cloudbuild.yaml                                 Para la phase5 con GCP
+├── deploy.sh                                       Para la phase5 con GCP 
+├── documentation                                   Doucmentación del proyecto completo
+├── images/
+│    ├── images_readme                              Imagenes mostradas en el readme              
+│    └── images_test                                Imagenes prueba para subir a la plataforma
 ├── data/
-│   └── lulc_cache.json           # Cache de clasificaciones por ciudad
-│
-└── docs/                         # Documentación técnica (este archivo)
+│    ├── chroma_db/ 
+│    ├── processed/                                 Carpeta de datos procesados
+│    └── raw/                                       Carpeta de datos sin procesar 
+├──  models/
+│    ├── best_model.pth                             Mejor modelo obtenido
+│    ├── lulc_cache.json                            Cache  
+│    └── results_test_results.json                  Evaluacion del modelo 
+├──  docs/
+│    └── knowledge/
+│        ├── doc_onu_habitat_estandares.txt   
+│        ├── doc_lulc_sentinel2.txt  
+│        └── doc_ciudades_perfil.txt                            
+└── src/
+    ├── cities_config.py                            Selección de las ciudades. 
+    ├── data_downloader.py                          Descarga las imagnees del Sentinel-2
+    ├── evaluate.py                                 Evaluación del modelo
+    ├── get_worldcover_tiles.py                     Obten los tiles de WorldCover para las ciudades
+    ├── preprocessor.py                             Preprosesamiento de las imagnees
+    ├── prueba_autenticación.py                     Prueba de autenticación de Sentinel-2
+    ├── train.py                                    Entrenamiento de modelo
+    ├── worldcover_downloader.py                    Descarga de Titles de las imagenes  
+    ├── phase3/                                     Fase de implementación de agentes con Anthropic
+    │    ├── _init_.py
+    │    ├── agent.py 
+    │    ├── api.py
+    │    ├── inference.py
+    │    ├── rag.py
+    │    └── tools.py
+    ├── phase4/                                     Fase de Frontend
+    │    ├── package.json                            
+    │    ├── vite.config.js
+    │    ├── index.html
+    │    ├── main.jsx
+    │    ├── App.jsx 
+    │    └── components/
+    │          ├── Map.jsx
+    │          ├── FloatingChat.jsx
+    │          ├── CityCard.jsx
+    │          ├── SearchPanel.jsx
+    │          ├── IsochronePanel.jsx 
+    │          └── UploadModal.jsx
+    └── phase5/
+         ├── __init__.py
+         ├── api.py
+         ├── sentinel_hub.py
+         └── inference_gcs.py
 ```
 
 ---
@@ -612,7 +635,7 @@ Descarga de imágenes Sentinel-2 para las 10 ciudades de entrenamiento. Generaci
 
 Implementación de U-Net con backbone EfficientNet-B3 usando `segmentation-models-pytorch`. Entrenamiento sobre los 150,932 patches con `CrossEntropyLoss`. Evaluación con mIoU. Selección del mejor modelo: `models/best_model.pth`.
 
-**Resultado alcanzado:** mIoU = 0.6562
+**Resultado alcanzado:** mIoU = 0.8239
 
 ## Phase 3 — API Base
 
@@ -676,18 +699,8 @@ Integración de datos de contaminación NO₂ y CO de Sentinel-5P. Modelo predic
 
 ---
 
-# 18. Contexto de Portafolio
 
-| Ítem | Estado |
-|---|---|
-| Publicado en LinkedIn | Sí |
-| Vacante Founding Engineer AI Automation (8888.home) | Postulado — respuesta inicial + plan 1 semana + CLAUDE.md enviados |
-| Vacante ML Engineer (70-75K MXN remoto) | El proyecto cubre Python/IA, LangChain, APIs, CI/CD, GCP |
-| Presentación académica | Presentado al Dr. — recomendó añadir Sentinel-5P para contaminación |
-
----
-
-# 19. Referencias
+# 18. Referencias
 
 - Ronneberger, O., Fischer, P., & Brox, T. (2015). *U-Net: Convolutional Networks for Biomedical Image Segmentation*. MICCAI 2015.
 - Tan, M., & Le, Q. V. (2019). *EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks*. ICML 2019.
