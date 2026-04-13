@@ -11,9 +11,9 @@ Los datos corresponden al catalago de imagenes de Sentinel-2. Se utilizaron imag
 ## Aarquitectura 
 
 ## Metricas
-### Metricas generales
+### Metricas generales (Conjunto de Prueba)
 
-| Métrica                  | Valor        |
+| Métrica                  | Valor       |
 |--------------------------|-------------|
 | Número de clases         | 4           |
 | Muestras de prueba       | 22,639      |
@@ -23,7 +23,7 @@ Los datos corresponden al catalago de imagenes de Sentinel-2. Se utilizaron imag
 | Exactitud global (pixel) | 92.16%      |
 | Tiempo (segundos)        | 1201.89     |
 
-### Metricas por clase 
+### Metricas por clase (Conjunto de Prueba)
 
 | Clase                   | IoU    | Precisión | Recall | F1 Score |
 |-------------------------|--------|-----------|--------|----------|
