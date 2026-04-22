@@ -338,6 +338,7 @@ Urban-Intelligence-Platform/
 ├── cloudbuild.yaml                                 Para la phase5 con GCP
 ├── deploy.sh                                       Para la phase5 con GCP 
 ├── documentation                                   Doucmentación del proyecto completo
+├── references                                      Articulos de referencias para el proyecto
 ├── images/
 │    ├── images_readme                              Imagenes mostradas en el readme              
 │    └── images_test                                Imagenes prueba para subir a la plataforma
