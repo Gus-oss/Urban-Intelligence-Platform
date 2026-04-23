@@ -136,7 +136,7 @@ La plataforma clasifica cada píxel en una de las siguientes cuatro categorías:
 
 ## 5.1 Arquitectura: U-Net + EfficientNet-B3
 
-### 5.1.1 ¿Qué es U-Net?
+### 5.1.1 U-Net
 
 U-Net es una arquitectura de red neuronal convolucional diseñada originalmente para segmentación semántica de imágenes médicas (Ronneberger et al., 2015). Su estructura en forma de "U" consiste en:
 
@@ -158,7 +158,7 @@ $$
 
 donde $\mathbf{F}_{l-1}$ proviene del skip connection del encoder.
 
-### 5.1.2 ¿Por qué EfficientNet-B3 como Backbone?
+### 5.1.2 EfficientNet-B3 como Backbone
 
 EfficientNet-B3 reemplaza el encoder estándar de U-Net. Es una familia de redes diseñada mediante *compound scaling* (Tan & Le, 2019), que escala simultáneamente la profundidad, anchura y resolución de la red de manera balanceada. Las ventajas sobre un encoder vanilla son:
 
@@ -182,12 +182,29 @@ model = smp.Unet(
 
 ## 5.2 Datos de Entrenamiento
 
+El conjunto de datos se dividió en **70% entrenamiento, 15% validación y 15% evaluación**
+
 | Parámetro | Valor |
 |---|---|
-| Total de patches | 150,932 |
+| Arquitectura | U-Net + EfficientNet-B3 |
+| Optimizer | AdamW (lr = 1×10⁻⁴) |
+| LR Scheduler | Cosine Annealing |
+| Loss function | CrossEntropy + Dice (50/50) |
+| Batch size | 16 |
+| Épocas | 50 |
+| Early Stopping | Patience = 10 |
+
+### Configuración del dataset
+
+| Parámetro | Valor |
+|---|---|
+| Total de patches | 105,652 |
 | Tamaño de patch | 256 × 256 píxeles |
-| Bandas de entrada | 4 (B02, B03, B04, B08) |
-| Ciudades incluidas | 10 (ver tabla siguiente) |
+| Bandas de entrada | 6 (B02 – B12) |
+| Ciudades incluidas | 10 |
+| Semilla | 42 |
+| Stride | 128 px (50% solapamiento) |
+| Estaciones | 4 |
 
 ### 5.2.1 Ciudades de Entrenamiento
 
@@ -251,7 +268,7 @@ $$
 | 0.50 – 0.65 | Aceptable |
 | < 0.50 | Insuficiente |
 
-### Resultado Obtenido en conjunto de prueba
+### Resultado Obtenido en conjunto de evaluación
 
 $$
 \text{mIoU}_{\text{UrbanAI}} = 0.8239
@@ -572,7 +589,7 @@ ngrok http 3000 --request-header-add "ngrok-skip-browser-warning: true"
 
 ---
 
-# 13. Arquitectura en Google Cloud Platform (Histórica)
+# 13. Arquitectura en Google Cloud Platform
 
 > **Estado actual:** El proyecto GCP fue eliminado en abril de 2026 para evitar costos. Esta sección documenta la arquitectura como referencia para un posible redespliegue en Cloud Run.
 
