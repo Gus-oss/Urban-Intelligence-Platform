@@ -14,8 +14,10 @@ from datetime import datetime, timedelta
 from typing import Tuple, Optional
 
 
-SENTINEL_HUB_URL   = "https://services.sentinel-hub.com/api/v1/process"
-SENTINEL_HUB_TOKEN = "https://services.sentinel-hub.com/auth/realms/main/protocol/openid-connect/token"
+#Fecha: 22/04/2026 se decide cambiar de Sentinel Hub a Copernicus Data Space, que en teória es gratis
+#Y con Sentinel Hub es de paga cada mes (25 Euros al mes)
+SENTINEL_HUB_URL   = "https://sh.dataspace.copernicus.eu/api/v1/process"                                               # Sentinel HUB: "https://services.sentinel-hub.com/api/v1/process" 
+SENTINEL_HUB_TOKEN = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"         # Sentinel HUB: "https://services.sentinel-hub.com/auth/realms/main/protocol/openid-connect/token"
 
 EVALSCRIPT = """
 //VERSION=3
