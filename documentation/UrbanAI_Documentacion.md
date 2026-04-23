@@ -83,6 +83,23 @@ El proyecto fue desplegado en Google Cloud Platform durante fases de desarrollo.
 
 Sentinel-2 es una misión de observación terrestre de la Agencia Espacial Europea (ESA), parte del programa Copernicus. Proporciona imágenes multiespectrales de alta resolución ideal para análisis de cobertura del suelo.
 
+### 3.1.1 Ciudades de Entrenamiento
+
+| Ciudad | País | Característica climática |
+|---|---|---|
+| Amsterdam | Países Bajos | Oceánico, alta vegetación |
+| Bangkok | Tailandia | Tropical húmedo, ríos |
+| Bogotá | Colombia | Altiplano, zona montañosa |
+| Dubai | Emiratos Árabes | Árido, expansión urbana rápida |
+| Houston | EE.UU. | Subtropical, ciudad extensa |
+| Madrid | España | Mediterráneo continental |
+| Ciudad de México | México | Altiplano, megaciudad |
+| Monterrey | México | Semiárido, montañoso |
+| Mumbai | India | Monzónico, costera |
+| Nairobi | Kenia | Tropical de altitud |
+
+La diversidad geográfica y climática de las ciudades es intencional: garantiza que el modelo aprenda características LULC que generalicen a cualquier ubicación analizada mediante el endpoint `/analyze-location`.
+
 ## 3.2 Características Técnicas
 
 | Parámetro | Valor |
@@ -94,9 +111,11 @@ Sentinel-2 es una misión de observación terrestre de la Agencia Espacial Europ
 | Formato de descarga | GeoTIFF |
 | Rango de valores | 0.0 – 1.0 (reflectancia normalizada) |
 | Cobertura de nubes | Se descarta imagen si supera umbral definido |
-| Proveedor de acceso | Sentinel Hub (OAuth2) |
+| Proveedor de acceso | Copernicus Dataspace|
 
-## 3.3 Preprocesamiento de Imágenes
+> A parti del 22/04/2026 se dejo de utilizar Sentinel Hub (OAuth2) y se cambio por Copernicus Dataspace
+
+## 3.3 Preprocesamiento de Imágenes (Queda pendiente de cambiar)
 
 Las imágenes se obtienen mediante el servicio Sentinel Hub, que entrega los recortes geográficos ya ortorrectificados y en reflectancia de superficie. El pipeline de preprocesamiento incluye:
 
@@ -206,23 +225,6 @@ El conjunto de datos se dividió en **70% entrenamiento, 15% validación y 15% e
 | Stride | 128 px (50% solapamiento) |
 | Estaciones | 4 |
 
-### 5.2.1 Ciudades de Entrenamiento
-
-| Ciudad | País | Característica climática |
-|---|---|---|
-| Amsterdam | Países Bajos | Oceánico, alta vegetación |
-| Bangkok | Tailandia | Tropical húmedo, ríos |
-| Bogotá | Colombia | Altiplano, zona montañosa |
-| Dubai | Emiratos Árabes | Árido, expansión urbana rápida |
-| Houston | EE.UU. | Subtropical, ciudad extensa |
-| Madrid | España | Mediterráneo continental |
-| Ciudad de México | México | Altiplano, megaciudad |
-| Monterrey | México | Semiárido, montañoso |
-| Mumbai | India | Monzónico, costera |
-| Nairobi | Kenia | Tropical de altitud |
-
-La diversidad geográfica y climática de las ciudades es intencional: garantiza que el modelo aprenda características LULC que generalicen a cualquier ubicación analizada mediante el endpoint `/analyze-location`.
-
 ## 5.3 Función de Pérdida
 
 Se utiliza `CrossEntropyLoss` estándar de PyTorch para clasificación multiclase:
@@ -268,22 +270,28 @@ $$
 | 0.50 – 0.65 | Aceptable |
 | < 0.50 | Insuficiente |
 
-### Resultado Obtenido en conjunto de evaluación
+### Resultados 
+| Metrica | Valor |
+| --- | --- |
+| Número de clases | 4 | 
+| Muestras de prueba | 22,639 |
+| Test Loss | 0.2019 | 
+| mIoU | 0.8239 |
+| Mean F1 | 0.9000 |
+| Exactitud global (pixel) | 92.6\%
+| Tiempo (segundos) | 1,201.89 |
 
-$$
-\text{mIoU}_{\text{UrbanAI}} = 0.8239
-$$
 
-Este resultado cae en la categoría **Excelente**, considerando que el modelo opera sobre 4 bandas de imágenes satelitales reales con variabilidad climática, estacional y geográfica alta.
+El resultado obtenido para mIoU caé en la catergoria de  **Excelente**, considerando que el modelo opera sobre 4 bandas de imágenes satelitales reales con variabilidad climática, estacional y geográfica alta.
 
 ## 6.2 IoU por Clase para el conjunto de prueba
 
-| Clase | IoU aproximado |
-|---|---|
-| Urbano / Construido | 0.7536 |
-| Vegetación / Bosque | 0.8804 |
-| Agua | 0.8686 |
-| Suelo desnudo / Árido | 0.7931 |
+| Clase | IoU  | Precisión | Recall | F1
+|---|---|---|---|---|
+| Urbano / Construido | 0.7536 | 0.8472 | 0.8691 | 0.8576 |
+| Vegetación / Bosque | 0.8804 | 0.9367 | 0.9355 | 0.9360 |
+| Agua | 0.8686 | 0.9322 | 0.9162 | 0.9231 | 
+| Suelo desnudo / Árido | 0.7931 | 0.8902 | 0.8767 | 0.8832|
 
 La clase Agua y Vegetación son las mejor clasificadas; Agua tiene buena separabilidad espectral; Suelo árido presenta mayor confusión con zonas urbanas de baja densidad.
 
