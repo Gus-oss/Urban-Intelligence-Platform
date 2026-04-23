@@ -13,18 +13,18 @@
 4. [Clases LULC](#4-clases-lulc)
 5. [Modelo de Machine Learning](#5-modelo-de-machine-learning)
 6. [Métricas de Evaluación](#6-métricas-de-evaluación)
-7. [Arquitectura del Sistema](#7-arquitectura-del-sistema)
-8. [API — Endpoints Disponibles](#8-api--endpoints-disponibles)
-9. [Componentes Frontend](#9-componentes-frontend)
-10. [Agente Conversacional y RAG](#10-agente-conversacional-y-rag)
-11. [Variables de Entorno](#11-variables-de-entorno)
-12. [Comandos de Arranque](#12-comandos-de-arranque)
-13. [Arquitectura en Google Cloud Platform (Histórica)](#13-arquitectura-en-google-cloud-platform-histórica)
-14. [Fases del Proyecto](#14-fases-del-proyecto)
-15. [Funcionalidades Implementadas](#15-funcionalidades-implementadas)
-16. [Pendientes y Trabajo Futuro](#16-pendientes-y-trabajo-futuro)
-17. [Bugs Conocidos y Soluciones](#17-bugs-conocidos-y-soluciones)
-18. [Contexto de Portafolio](#18-contexto-de-portafolio)
+7. [Resultados](#7-resultados)
+8. [Arquitectura del Sistema](#8-arquitectura-del-sistema)
+9. [API — Endpoints Disponibles](#9-api--endpoints-disponibles)
+10. [Componentes Frontend](#10-componentes-frontend)
+11. [Agente Conversacional y RAG](#11-agente-conversacional-y-rag)
+12. [Variables de Entorno](#12-variables-de-entorno)
+13. [Comandos de Arranque](#13-comandos-de-arranque)
+14. [Arquitectura en Google Cloud Platform](#14-arquitectura-en-google-cloud-platform-histórica)
+15. [Fases del Proyecto](#15-fases-del-proyecto)
+16. [Funcionalidades Implementadas](#16-funcionalidades-implementadas)
+17. [Pendientes y Trabajo Futuro](#17-pendientes-y-trabajo-futuro)
+18. [Bugs Conocidos y Soluciones](#18-bugs-conocidos-y-soluciones)
 19. [Referencias](#19-referencias)
 
 ---
@@ -270,7 +270,16 @@ $$
 | 0.50 – 0.65 | Aceptable |
 | < 0.50 | Insuficiente |
 
-### Resultados 
+## 6.2 Métricas Secundarias
+
+Adicionalmente se monitorean durante entrenamiento:
+
+- **Pixel Accuracy:** fracción de píxeles correctamente clasificados (menos informativa que mIoU ante desbalance de clases).
+- **Loss de validación:** para detectar sobreajuste.
+- **Loss de entrenamiento:** para monitorear convergencia.
+
+
+# 7. Resultados 
 | Metrica | Valor |
 | --- | --- |
 | Número de clases | 4 | 
@@ -284,7 +293,7 @@ $$
 
 El resultado obtenido para mIoU caé en la catergoria de  **Excelente**, considerando que el modelo opera sobre 4 bandas de imágenes satelitales reales con variabilidad climática, estacional y geográfica alta.
 
-## 6.2 IoU por Clase para el conjunto de prueba
+## 7.1 IoU por Clase para el conjunto de prueba
 
 | Clase | IoU  | Precisión | Recall | F1
 |---|---|---|---|---|
@@ -294,20 +303,11 @@ El resultado obtenido para mIoU caé en la catergoria de  **Excelente**, conside
 | Suelo desnudo / Árido | 0.7931 | 0.8902 | 0.8767 | 0.8832|
 
 La clase Agua y Vegetación son las mejor clasificadas; Agua tiene buena separabilidad espectral; Suelo árido presenta mayor confusión con zonas urbanas de baja densidad.
-
-## 6.3 Métricas Secundarias
-
-Adicionalmente se monitorean durante entrenamiento:
-
-- **Pixel Accuracy:** fracción de píxeles correctamente clasificados (menos informativa que mIoU ante desbalance de clases).
-- **Loss de validación:** para detectar sobreajuste.
-- **Loss de entrenamiento:** para monitorear convergencia.
-
 ---
 
-# 7. Arquitectura del Sistema
+# 8. Arquitectura del Sistema
 
-## 7.1 Diagrama de Componentes
+## 8.1 Diagrama de Componentes
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -346,7 +346,7 @@ Adicionalmente se monitorean durante entrenamiento:
 └─────────────────────────────────────────────────────────┘
 ```
 
-## 7.2 Estructura de Archivos del Proyecto
+## 8.2 Estructura de Archivos del Proyecto
 
 ```
 Urban-Intelligence-Platform/
@@ -418,9 +418,9 @@ Urban-Intelligence-Platform/
 
 ---
 
-# 8. API — Endpoints Disponibles
+# 9. API — Endpoints Disponibles
 
-## 8.1 Tabla de Endpoints
+## 9.1 Tabla de Endpoints
 
 | Método | Endpoint | Descripción |
 |---|---|---|
@@ -434,7 +434,7 @@ Urban-Intelligence-Platform/
 | `POST` | `/analyze-location` | Análisis de cualquier ubicación via Sentinel Hub |
 | `GET` | `/sentinel/status` | Estado de conexión OAuth2 con Sentinel Hub |
 
-## 8.2 Detalle: `/analyze-location`
+## 9.2 Detalle: `/analyze-location`
 
 Este endpoint es el corazón de la funcionalidad de Phase 5. Permite analizar cualquier ubicación del mundo mediante descarga dinámica de imágenes Sentinel-2.
 
@@ -473,9 +473,9 @@ Este endpoint es el corazón de la funcionalidad de Phase 5. Permite analizar cu
 
 ---
 
-# 9. Componentes Frontend
+# 10. Componentes Frontend
 
-## 9.1 Estado Global (`App.jsx`)
+## 10.1 Estado Global (`App.jsx`)
 
 | Variable de estado | Tipo | Descripción |
 |---|---|---|
@@ -488,14 +488,14 @@ Este endpoint es el corazón de la funcionalidad de Phase 5. Permite analizar cu
 | `showUpload` | `boolean` | Modal de upload visible |
 | `showIsochrone` | `boolean` | Panel de isocronas visible |
 
-## 9.2 Mapa (`Map.jsx`)
+## 10.2 Mapa (`Map.jsx`)
 
 - Estilo base: `mapbox://styles/mapbox/satellite-streets-v12`
 - Proyección: globo 3D habilitado
 - Overlay LULC: renderizado sin parpadeo usando `updateImage()` + `useRef` para `prevOverlay` (compara antes de redibujar)
 - Isocronas: renderizadas como polígonos o líneas según configuración del usuario
 
-## 9.3 Diseño Visual
+## 10.3 Diseño Visual
 
 ### Tipografía
 
@@ -534,9 +534,9 @@ Este endpoint es el corazón de la funcionalidad de Phase 5. Permite analizar cu
 
 ---
 
-# 10. Agente Conversacional y RAG
+# 11. Agente Conversacional y RAG
 
-## 10.1 Arquitectura RAG
+## 11.1 Arquitectura RAG
 
 El agente conversacional de UrbanAI implementa *Retrieval-Augmented Generation* (RAG) con los siguientes componentes:
 
@@ -549,7 +549,7 @@ El agente conversacional de UrbanAI implementa *Retrieval-Augmented Generation* 
 | Número de fragmentos indexados | 28 |
 | Idioma del corpus | Español + Inglés |
 
-## 10.2 Funcionamiento
+## 11.2 Funcionamiento
 
 El agente recibe cada mensaje del usuario junto con el contexto de la ciudad activa (`city`). Realiza búsqueda semántica en ChromaDB para recuperar los fragmentos más relevantes de la documentación técnica, y los inyecta en el contexto del LLM antes de generar la respuesta. Esto permite respuestas contextualizadas sobre estadísticas LULC específicas de cada ciudad.
 
@@ -566,7 +566,7 @@ El endpoint `/chat` acepta:
 
 ---
 
-# 11. Variables de Entorno
+# 12. Variables de Entorno
 
 | Variable | Descripción | Ubicación |
 |---|---|---|
@@ -579,7 +579,7 @@ El endpoint `/chat` acepta:
 
 ---
 
-# 12. Comandos de Arranque
+# 13. Comandos de Arranque
 
 ```bash
 # 1. Activar entorno y levantar backend (desde raíz del proyecto)
@@ -597,11 +597,11 @@ ngrok http 3000 --request-header-add "ngrok-skip-browser-warning: true"
 
 ---
 
-# 13. Arquitectura en Google Cloud Platform
+# 14. Arquitectura en Google Cloud Platform
 
 > **Estado actual:** El proyecto GCP fue eliminado en abril de 2026 para evitar costos. Esta sección documenta la arquitectura como referencia para un posible redespliegue en Cloud Run.
 
-## 13.1 Componentes GCP Utilizados
+## 14.1 Componentes GCP Utilizados
 
 | Servicio | Uso en el proyecto |
 |---|---|
@@ -611,7 +611,7 @@ ngrok http 3000 --request-header-add "ngrok-skip-browser-warning: true"
 | **Artifact Registry** | Registro de imágenes Docker |
 | **Cloud Build** | Pipeline de CI/CD para build y despliegue automático |
 
-## 13.2 Características de la VM (Cloud Run)
+## 14.2 Características de la VM (Cloud Run)
 
 Cloud Run no utiliza VMs tradicionales sino contenedores gestionados. Las características configuradas fueron:
 
@@ -627,7 +627,7 @@ Cloud Run no utiliza VMs tradicionales sino contenedores gestionados. Las caract
 | Autoescalado máximo | 3 instancias |
 | Variable `USE_GCS` | `true` en Cloud Run |
 
-## 13.3 Características de Google Cloud Storage
+## 14.3 Características de Google Cloud Storage
 
 | Parámetro | Valor |
 |---|---|
@@ -638,7 +638,7 @@ Cloud Run no utiliza VMs tradicionales sino contenedores gestionados. Las caract
 | Contenido almacenado | Máscaras LULC exportadas, imágenes clasificadas, `lulc_cache.json`, pesos del modelo |
 | Acceso desde backend | `google-cloud-storage` SDK con Application Default Credentials |
 
-## 13.4 Instrucciones de Redespliegue (Referencia)
+## 14.4 Instrucciones de Redespliegue (Referencia)
 
 Si en el futuro se requiere redespliegue en GCP:
 
@@ -651,7 +651,7 @@ Si en el futuro se requiere redespliegue en GCP:
 
 ---
 
-# 14. Fases del Proyecto
+# 15. Fases del Proyecto
 
 ## Phase 1 — Exploración y Dataset
 
@@ -681,7 +681,7 @@ Integración de datos de contaminación NO₂ y CO de Sentinel-5P. Modelo predic
 
 ---
 
-# 15. Funcionalidades Implementadas
+# 16. Funcionalidades Implementadas
 
 1. Clasificación LULC de 10 ciudades precargadas (Phase 3).
 2. Búsqueda dinámica de cualquier ciudad del mundo via Sentinel Hub (Phase 5).
@@ -699,7 +699,7 @@ Integración de datos de contaminación NO₂ y CO de Sentinel-5P. Modelo predic
 
 ---
 
-# 16. Pendientes y Trabajo Futuro
+# 17. Pendientes y Trabajo Futuro
 
 | Tarea | Prioridad | Descripción |
 |---|---|---|
@@ -710,7 +710,7 @@ Integración de datos de contaminación NO₂ y CO de Sentinel-5P. Modelo predic
 
 ---
 
-# 17. Bugs Conocidos y Soluciones
+# 18. Bugs Conocidos y Soluciones
 
 | Bug | Causa | Solución Implementada |
 |---|---|---|
@@ -725,7 +725,7 @@ Integración de datos de contaminación NO₂ y CO de Sentinel-5P. Modelo predic
 
 ---
 
-# 18. Referencias
+# 19. Referencias
 
 - Ronneberger, O., Fischer, P., & Brox, T. (2015). *U-Net: Convolutional Networks for Biomedical Image Segmentation*. MICCAI 2015.
 - Tan, M., & Le, Q. V. (2019). *EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks*. ICML 2019.
