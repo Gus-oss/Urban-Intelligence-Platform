@@ -190,7 +190,7 @@ export default function SearchPanel({ onResult, onClose, isCompare = false }) {
             ))}
             <div style={{ flex: 1 }} />
             <button onClick={analyze} disabled={loading} style={{
-              padding: '8px 20px', borderRadius: 8, border: 'none',
+              padding: '8px 20px', borderRadius: 8,
               cursor: loading ? 'wait' : 'pointer',
               background: loading
                 ? 'var(--bg-hover)'
