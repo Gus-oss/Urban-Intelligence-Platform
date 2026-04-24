@@ -741,6 +741,6 @@ Integración de datos de contaminación NO₂ y CO de Sentinel-5P. Modelo predic
 
 # Fecha: 22/04/2026
 Cambie de Sentinel Hub a Copernicus Data Space, debido a que se termino la capa gratuita. 
-Las modificaciones se realizaron al .env y al codigo sentinel_hub.py de la carpeta phase 5 sel src. Texto con antigraviti
+Las modificaciones se realizaron al .env y al codigo sentinel_hub.py de la carpeta phase 5 sel src. Texto con antigravity
 
 *Documentación generada el 08 de abril de 2026. Proyecto en desarrollo activo — Phase 6 (Sentinel-5P) en planificación.*
