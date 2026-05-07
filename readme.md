@@ -8,7 +8,7 @@ Los datos corresponden al catalago de imagenes de Sentinel-2. Se utilizaron imag
 
 ## Solución
 
-## Aarquitectura 
+## Arquitectura 
 
 ## Metricas
 ### Metricas generales (Conjunto de Prueba)
@@ -59,9 +59,6 @@ Por otra parte, podemos consultar con UrbanAI , un agente AI que utiliza la API 
 
 Se añadieron isocronas (min/seg) con tres categorias: a pie, bici, coche y coche en trafico. La opción nos permite obtener poligonos o contorno de hasta donde se puede aceder desde un punto de partida. 
 
-
-
-## Como ejecutar
 
 ## Estructura del proyecto
 ```bash
@@ -131,8 +128,3 @@ Urban-Intelligence-Platform/
          ├── sentinel_hub.py
          └── inference_gcs.py
 ```
-
-## Trabajo futuro
-
-## Herramientas
-Se utilizo Anthropic API para realizar las consultas. FastApi (/chat, /predict, /cities, /stats). Agente LangChain con 3 tools funcionando. Modelo U-Net como servicio de inferencia.
