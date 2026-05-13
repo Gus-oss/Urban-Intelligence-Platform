@@ -48,3 +48,9 @@ src/phase4/node_modules/
 # ========================
 .DS_Store
 Thumbs.db.vscode/
+
+# ========================
+# Project
+# ========================
+documentation/*
+presentation/*
