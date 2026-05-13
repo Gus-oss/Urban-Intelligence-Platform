@@ -52,5 +52,5 @@ Thumbs.db.vscode/
 # ========================
 # Project
 # ========================
-documentation/*
-presentation/*
+documentation/
+presentation/
