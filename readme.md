@@ -5,10 +5,38 @@ _**Autor:**_ Gustavo de Jesús Escobar Mata.
 Los datos corresponden al catalago de imagenes de Sentinel-2. Se utilizaron imagenes satelitales de: Amsterdam, Bangkok, Bogota, Ciudad de México, Dubai, Houston, Madrid, Monterrey , Mumbai y  Nairobi. La elección fue basada en variedad de suelos y regiones.
 
 ## Problema 
+El crecimiento acelerado de las ciudades genera una demanda creciente de información precisa y actualizada sobre el uso y cobertura del suelo (Land Use / Land Cover, LULC). Gobiernos, institutos de planeación y organismos de desarrollo urbano requieren conocer, con resolución espacial detallada, cómo se distribuyen las zonas construidas, la vegetación, los cuerpos de agua y el suelo árido dentro de sus territorios; sin embargo, los métodos tradicionales de cartografía (basados en trabajo de campo o fotointerpretación manual) son costosos, lentos y difíciles de escalar a múltiples ciudades simultáneamente.
 
 ## Solución
+El aprendizaje profundo ofrece una alternativa eficiente: modelos de segmentación semántica capaces de clasificar cada píxel de una imagen satelital de forma automática, a bajo costo y con alta precisión. En este proyecto se propone y evalúa una arquitectura U-Net con encoder EfficientNet-B3 entrenada sobre imágenes multiespectrales Sentinel-2 para clasificar el uso de suelo en 4 categorías (Urbano, Vegetación, Agua y Suelo árido) en 10 ciudades de 6 continentes. El modelo se integra en UrbanAI, una plataforma que combina el modelo con un agente de IA para democratizar el análisis territorial.
 
-## Arquitectura 
+## Arquitectura y Entrenamiento
+La arquitectura del proyecto está conformada por múltiples componentes clave:
+
+### 1. Modelo de Segmentación Semántica (U-Net + EfficientNet-B3)
+Se utiliza una arquitectura U-Net para la segmentación, conformada por:
+- **Encoder:** Extrae características jerárquicas reduciendo la resolución espacial. Se utilizó EfficientNet-B3, que aplica un escalado compuesto (compound scaling).
+- **Decoder:** Reconstruye la resolución espacial original mediante upsampling y convoluciones transpuestas.
+- **Skip connections:** Conexiones simétricas encoder–decoder para preservar la información espacial de alta resolución.
+El modelo procesa *patches* de 256x256 píxeles de imágenes Sentinel-2 L2A (10 m/pixel, utilizando 6 bandas: B02, B03, B04, B08, B11, B12).
+
+**Detalles del Entrenamiento:**
+El conjunto de datos se dividió en 70% para entrenamiento, 15% para validación y 15% para evaluación (con un total de 105,652 *patches*). 
+- **Optimizador:** AdamW (10⁻⁴) con LR Scheduler Cosine Annealing.
+- **Función de pérdida:** CrossEntropy + Dice Loss (50/50).
+- **Entrenamiento:** 50 épocas con Early Stopping (Patience = 10) y tamaño de batch de 16.
+
+### 2. Agente Inteligente y RAG
+El sistema integra un agente basado en herramientas siguiendo el paradigma ReAct (Reasoning + Acting), compuesto por:
+- **LLM (Cerebro):** Claude Sonnet.
+- **Framework:** LangChain + LangGraph.
+- **Herramientas (Actuadores):** `classify_city` (clasifica con el modelo U-Net), `get_city_stats` (estadísticas), `list_cities` y `search_urban_docs` (búsqueda semántica usando RAG).
+- **Componente RAG:** Extiende el conocimiento del agente con documentos externos en tiempo de inferencia para mejorar las respuestas sobre estándares urbanos o información específica.
+
+### 3. Implementación Cloud (Google Cloud Platform)
+El sistema se implementó en GCP para aprovechar sus capacidades de escalabilidad y disponibilidad:
+- **Google Cloud Storage (GCS):** Almacenamiento de imágenes, archivos y el modelo.
+- **Cómputo en la Nube:** Uso de máquinas virtuales (VM) con 2 vCPU, 4 GB de RAM, 400 GB SSD, configuradas con autoescalado (de 0 a 3 instancias) y timeout de 120s por petición.
 
 ## Metricas
 ### Metricas generales (Conjunto de Prueba)
@@ -59,6 +87,11 @@ Por otra parte, podemos consultar con UrbanAI , un agente AI que utiliza la API 
 
 Se añadieron isocronas (min/seg) con tres categorias: a pie, bici, coche y coche en trafico. La opción nos permite obtener poligonos o contorno de hasta donde se puede aceder desde un punto de partida. 
 
+
+## Investigación futura y limitaciones
+- La clase **Industrial** presenta un IoU de 0.0 en el modelo actual. Se requiere reentrenamiento con `class_weight` (pesos inversamente proporcionales a la frecuencia de cada clase) para corregir el desbalance de clases.
+- Análisis de predicción de niveles de contaminación mediante datos de Sentinel-5P.
+- Despliegue final de la aplicación en Cloud Run de GCP.
 
 ## Estructura del proyecto
 ```bash
